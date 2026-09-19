@@ -1,0 +1,1046 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>
+:root { color-scheme: light dark; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+body { margin: 0; }
+img { max-width: 100%; }
+[hidden] { display: none !important; }
+</style>
+<title>Круг двунадесятых праздников</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Old+Standard+TT:ital,wght@0,400;0,700;1,400&family=PT+Sans:wght@400;700&display=swap">
+<style>
+:root {
+    --ground: #edf0f4;
+    --paper: #f8f9fb;
+    --ink: #1b2331;
+    --muted: #5a6477;
+    --line: #c6ccd7;
+    --tick: #7d879a;
+    --gold: #a4761b;
+    --lapis: #2b5aa2;
+    --cinnabar: #b0392b;
+    --month-a: #dde2ea;
+    --month-b: #e7ebf0;
+    --winter: #c7d5e9;
+    --spring: #cde0c7;
+    --summer: #ead8a4;
+    --autumn: #e2c2a6;
+    --focus: #2b5aa2;
+    --fast: #7b5fa8;
+    --display: 'Old Standard TT', 'Times New Roman', Georgia, serif;
+    --body: 'PT Sans', 'Segoe UI', Roboto, Arial, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+        --ground: #10151f;
+        --paper: #161d2a;
+        --ink: #e5e9f0;
+        --muted: #9aa4b6;
+        --line: #2b3548;
+        --tick: #6d7890;
+        --gold: #d8ae57;
+        --lapis: #82a8e8;
+        --cinnabar: #e2735f;
+        --month-a: #1b2332;
+        --month-b: #202a3b;
+        --winter: #22324b;
+        --spring: #213727;
+        --summer: #3b3319;
+        --autumn: #3d2b21;
+        --focus: #82a8e8;
+        --fast: #a88bd6;
+    }
+}
+:root[data-theme="dark"] {
+    --ground: #10151f;
+    --paper: #161d2a;
+    --ink: #e5e9f0;
+    --muted: #9aa4b6;
+    --line: #2b3548;
+    --tick: #6d7890;
+    --gold: #d8ae57;
+    --lapis: #82a8e8;
+    --cinnabar: #e2735f;
+    --month-a: #1b2332;
+    --month-b: #202a3b;
+    --winter: #22324b;
+    --spring: #213727;
+    --summer: #3b3319;
+    --autumn: #3d2b21;
+    --focus: #82a8e8;
+    --fast: #a88bd6;
+}
+
+* { box-sizing: border-box; }
+body {
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--body);
+    font-size: 15px;
+    line-height: 1.5;
+    padding: 0 16px;
+}
+.page {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding-block: 16px 48px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.wheel-col { display: flex; flex-direction: column; gap: 10px; container: col / inline-size; position: relative; }
+.years {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 4px;
+}
+.years button {
+    font: inherit;
+    color: var(--ink);
+    background: transparent;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    height: 36px;
+    min-width: 36px;
+    padding: 0 12px;
+    cursor: pointer;
+}
+.years button:hover { border-color: var(--muted); }
+.years .year {
+    font-family: var(--display);
+    font-size: 26px;
+    min-width: 76px;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+}
+button:focus-visible, .feast:focus-visible, .pin:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+
+.layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 32px;
+    align-items: start;
+}
+
+
+/* ---- Круг ---- */
+.wheel {
+    position: relative;
+    width: 100%;
+    max-width: min(100%, calc(100vh - 150px));
+    min-width: min(100%, 300px);
+    margin: 0 auto;
+    aspect-ratio: 1;
+    container-type: inline-size;
+}
+.wheel svg { display: block; width: 100%; height: 100%; }
+.season { stroke: var(--ground); stroke-width: 3; }
+.season.winter { fill: var(--winter); }
+.season.spring { fill: var(--spring); }
+.season.summer { fill: var(--summer); }
+.season.autumn { fill: var(--autumn); }
+.month { stroke: var(--ground); stroke-width: 2; transition: fill .15s; }
+.month.a { fill: var(--month-a); }
+.month.b { fill: var(--month-b); }
+.month.lit { fill: var(--line); }
+.ring-label {
+    fill: var(--ink);
+    font-family: var(--body);
+    font-size: 19px;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    pointer-events: none;
+}
+.ring-label.season-label { font-size: 17px; fill: var(--muted); letter-spacing: .22em; }
+.tick { stroke: var(--tick); stroke-width: 1; }
+.tick.mid { stroke-width: 1.4; }
+.tick.major { stroke: var(--ink); stroke-width: 1.8; }
+.day-num { fill: var(--muted); font-size: 11px; font-family: var(--body); pointer-events: none; }
+.hit { fill: transparent; cursor: crosshair; }
+.hit:hover { fill: var(--line); fill-opacity: .55; }
+.newyear { stroke: var(--muted); stroke-width: 1.4; stroke-dasharray: 3 4; }
+.today-line { stroke: var(--ink); stroke-width: 2.4; }
+.today-dot { fill: var(--ink); }
+
+.feast { cursor: pointer; outline: none; }
+.feast .spoke { stroke-width: 2; }
+.feast .dot { stroke: var(--ground); stroke-width: 2.5; transition: r .15s; }
+.feast .halo { fill: none; stroke-width: 1.6; opacity: 0; transition: opacity .15s; }
+.feast.lord .spoke, .feast.lord .halo { stroke: var(--gold); }
+.feast.lord .dot { fill: var(--gold); }
+.feast.theotokos .spoke, .feast.theotokos .halo { stroke: var(--lapis); }
+.feast.theotokos .dot { fill: var(--lapis); }
+.feast.pascha .spoke, .feast.pascha .halo { stroke: var(--cinnabar); }
+.feast.pascha .dot { fill: var(--cinnabar); }
+.feast.is-selected .halo, .feast.is-active .halo, .feast:focus-visible .halo { opacity: 1; }
+
+.center {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 38cqw;
+    text-align: center;
+    pointer-events: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: .6cqw;
+}
+.center .eyebrow {
+    font-size: max(9px, 1.55cqw);
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--muted);
+}
+.center .eyebrow .mark { display: inline-block; width: .9em; height: .9em; border-radius: 50%; vertical-align: -.05em; margin-right: .4em; }
+.center .name {
+    font-family: var(--display);
+    font-size: max(13px, 3.3cqw);
+    line-height: 1.12;
+    text-wrap: balance;
+}
+.center .date {
+    font-family: var(--display);
+    font-size: max(15px, 4.6cqw);
+    line-height: 1.1;
+    font-variant-numeric: tabular-nums;
+}
+.center .sub { font-size: max(10px, 1.7cqw); color: var(--muted); line-height: 1.35; }
+
+/* ---- Правая колонка ---- */
+aside { display: flex; flex-direction: column; gap: 24px; min-width: 0; }
+.detail {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 22px 24px 24px;
+    height: 400px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+.detail > * { flex-shrink: 0; }
+.detail .kind {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+.chip {
+    font-size: 12px;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    padding: 2px 9px;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    color: var(--muted);
+}
+.chip.lord { color: var(--gold); border-color: var(--gold); }
+.chip.theotokos { color: var(--lapis); border-color: var(--lapis); }
+.chip.pascha { color: var(--cinnabar); border-color: var(--cinnabar); }
+.detail h2 {
+    font-family: var(--display);
+    font-weight: 400;
+    font-size: 27px;
+    line-height: 1.15;
+    margin: 0;
+    text-wrap: balance;
+}
+.detail .aka { margin: -6px 0 0; color: var(--muted); font-style: italic; font-family: var(--display); font-size: 17px; }
+.detail dl {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    gap: 4px 16px;
+    margin: 0;
+    font-variant-numeric: tabular-nums;
+}
+.detail dt { color: var(--muted); }
+.detail dd { margin: 0; }
+.detail .desc { margin: 0; max-width: 65ch; }
+
+.list h3 {
+    font-family: var(--display);
+    font-weight: 400;
+    font-size: 21px;
+    margin: 0;
+}
+.list .note { margin: 2px 0 10px; color: var(--muted); font-size: 13px; }
+.list ol { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.list button {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 12px 88px minmax(0, 1fr);
+    align-items: baseline;
+    gap: 10px;
+    text-align: left;
+    font: inherit;
+    color: var(--ink);
+    background: transparent;
+    border: 0;
+    border-bottom: 1px solid var(--line);
+    padding: 7px 6px;
+    cursor: pointer;
+}
+.list li:first-child button { border-top: 1px solid var(--line); }
+.list button:hover, .list button.is-active { background: var(--paper); }
+.list button.is-selected { background: var(--paper); font-weight: 700; }
+.list .d { font-variant-numeric: tabular-nums; color: var(--muted); font-weight: 400; }
+.list .sw { width: 10px; height: 10px; border-radius: 50%; align-self: center; }
+.list .pascha-row .n { color: var(--cinnabar); }
+.sw.lord, .mark.lord { background: var(--gold); }
+.sw.theotokos, .mark.theotokos { background: var(--lapis); }
+.sw.pascha, .mark.pascha { background: var(--cinnabar); }
+
+.legends { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 18px; color: var(--muted); font-size: 13px; }
+.legends .legend { display: contents; }
+.legend {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 6px 18px;
+    color: var(--muted);
+    font-size: 13px;
+}
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.legend .sw { display: inline-block; width: 10px; height: 10px; border-radius: 50%; }
+.legend .line { width: 14px; height: 0; border-top: 2px solid var(--ink); }
+.fast-band { fill: var(--fast); fill-opacity: .26; pointer-events: none; transition: fill-opacity .15s; }
+.fast-band.lit { fill-opacity: .55; }
+.fast-edge { fill: var(--fast); pointer-events: none; }
+.pin { cursor: pointer; outline: none; }
+.pin .spoke { stroke: var(--fast); stroke-width: 2; }
+.pin .head { fill: var(--fast); stroke: var(--ground); stroke-width: 2; }
+.pin .eye { fill: var(--ground); }
+.pin .halo { fill: none; stroke: var(--fast); stroke-width: 1.6; opacity: 0; transition: opacity .15s; }
+.pin.is-selected .halo, .pin.is-active .halo, .pin:focus-visible .halo { opacity: 1; }
+.legend .pin-icon { width: 11px; height: 15px; display: block; }
+.chip.fast { color: var(--fast); border-color: var(--fast); }
+.sw.fast, .mark.fast { background: var(--fast); border-radius: 2px; }
+.fasts .span { font-variant-numeric: tabular-nums; color: var(--muted); font-weight: 400; }
+.fasts button { grid-template-columns: 12px minmax(0, 1fr) auto; }
+.fasts .len { color: var(--muted); font-size: 13px; font-variant-numeric: tabular-nums; }
+.legend .dash { width: 14px; height: 0; border-top: 1.5px dashed var(--muted); }
+
+@container col (min-width: 560px) {
+    .wheel { max-width: min(100%, calc(100vh - 32px)); }
+    .years {
+        position: absolute;
+        top: 0;
+        left: 0;
+        flex-wrap: wrap;
+        width: 170px;
+        justify-content: flex-start;
+    }
+    .legends .legend {
+        display: flex;
+        position: absolute;
+        bottom: 0;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+    }
+    .legend-feasts { left: 0; }
+    .legend-fasts { right: 0; align-items: flex-end; }
+    .legend-fasts span { flex-direction: row-reverse; }
+}
+
+.tap { fill: transparent; }
+svg.compact .ring-label { font-size: 30px; letter-spacing: .1em; }
+svg.compact .ring-label.season-label { font-size: 25px; letter-spacing: .16em; }
+svg.compact .tick { stroke-width: 2; }
+svg.compact .tick.major { stroke-width: 3.2; }
+svg.compact .newyear { stroke-width: 3; stroke-dasharray: 6 8; }
+svg.compact .today-line { stroke-width: 5; }
+svg.compact .feast .spoke, svg.compact .pin .spoke { stroke-width: 3.5; }
+svg.compact .feast .dot { stroke-width: 4; }
+svg.compact .feast .halo, svg.compact .pin .halo { stroke-width: 3; }
+/* Небольшой полный круг: в центре только название и дата, подробности — в блоке описания. */
+@container (max-width: 480px) {
+    .center .eyebrow, .center .sub { display: none; }
+}
+.wheel.compact .center { width: 32cqw; }
+.wheel.compact .center .date { font-size: 7cqw; }
+
+/* ---- Раскладка по ширине экрана ----
+   мобилка < 640 · планшет 640–1023 · узкий десктоп 1024–1279 · широкий ≥ 1280 */
+@media (max-width: 639px) {
+    .page { padding-block: 12px 32px; gap: 16px; }
+    .layout { gap: 20px; }
+    .detail { height: auto; overflow: visible; padding: 18px; }
+    .detail h2 { font-size: 23px; }
+    .legends, .legend { gap: 4px 14px; }
+}
+@media (min-width: 640px) and (max-width: 1023px) {
+    aside { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 24px 28px; }
+    .detail { grid-column: 1 / -1; height: 320px; }
+}
+@media (min-width: 1024px) {
+    .layout { grid-template-columns: minmax(0, 1fr) 340px; }
+    .wheel-col { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 16px); }
+    .wheel-col .wheel { min-width: min(100%, 540px); }
+}
+/* Окно ниже круга: закреплённый круг не показал бы свою нижнюю часть — пусть прокручивается со страницей. */
+@media (min-width: 1024px) and (max-height: 579px) {
+    .wheel-col { position: relative; top: auto; }
+}
+@media (min-width: 1280px) {
+    .page { max-width: 1680px; }
+    .layout { grid-template-columns: minmax(0, 1fr) minmax(360px, 480px); gap: 48px; }
+}
+
+@container col (max-width: 559px) {
+    .legends {
+        display: grid;
+        grid-template-columns: repeat(2, max-content);
+        justify-content: center;
+        gap: 6px 28px;
+    }
+    .legend-fasts > span:last-child { grid-column: 1 / -1; }
+}
+@media (max-width: 639px) {
+    .wheel-col { gap: 14px; }
+    .years .year { font-size: 24px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; }
+}
+</style>
+</head>
+<body>
+
+<div class="page">
+    <div class="layout">
+        <div class="wheel-col">
+            <div class="wheel">
+                <svg id="wheel" viewBox="0 0 900 900" role="img" aria-label="Годовой круг с отмеченными праздниками"></svg>
+                <div class="center" id="center" aria-live="polite"></div>
+            </div>
+            <div class="years" role="group" aria-label="Год">
+                <button type="button" id="prev-year" aria-label="Предыдущий год">‹</button>
+                <span class="year" id="year-label" aria-live="polite"></span>
+                <button type="button" id="next-year" aria-label="Следующий год">›</button>
+                <button type="button" id="this-year">Сегодня</button>
+            </div>
+            <div class="legends">
+            <div class="legend legend-feasts">
+                <span><i class="sw lord"></i>Господский</span>
+                <span><i class="sw theotokos"></i>Богородичный</span>
+                <span><i class="sw pascha"></i>Пасха</span>
+                <span><i class="line"></i>Сегодня</span>
+            </div>
+            <div class="legend legend-fasts">
+                <span><i class="sw fast"></i>Пост</span>
+                <span><svg class="pin-icon" viewBox="-8.5 -23 17 24" aria-hidden="true"><path style="fill: var(--fast)" d="M0 0C-3 -4 -7.5 -8 -7.5 -14A7.5 7.5 0 1 1 7.5 -14C7.5 -8 3 -4 0 0Z"></path><circle style="fill: var(--ground)" cx="0" cy="-14" r="2.8"></circle></svg>Начало поста</span>
+                <span><i class="dash"></i>Церковное новолетие</span>
+            </div>
+            </div>
+        </div>
+
+        <aside>
+            <article class="detail" id="detail"></article>
+            <section class="list">
+                <h3>В порядке церковного года</h3>
+                <p class="note">Церковный год начинается 14 сентября — 1 сентября по старому стилю.</p>
+                <ol id="feast-list"></ol>
+            </section>
+            <section class="list fasts">
+                <h3>Посты</h3>
+                <p class="note">Кроме них постными считаются среда и пятница — вне сплошных седмиц.</p>
+                <ol id="fast-list"></ol>
+            </section>
+        </aside>
+    </div>
+</div>
+
+<script>
+const FEASTS = [
+    {
+        id: 'nativity-theotokos', kind: 'theotokos', fixed: [8, 21],
+        name: 'Рождество Пресвятой Богородицы', short: 'Рождество Богородицы',
+        desc: 'Рождение Девы Марии у праведных Иоакима и Анны, которые до глубокой старости оставались бездетными и молили Бога о ребёнке. С этого праздника открывается череда двунадесятых в церковном году. Подробности события сохранило древнее предание — Протоевангелие Иакова.'
+    },
+    {
+        id: 'exaltation', kind: 'lord', fixed: [8, 27],
+        name: 'Воздвижение Честного и Животворящего Креста Господня', short: 'Воздвижение Креста',
+        desc: 'Память обретения Креста Господня в Иерусалиме царицей Еленой около 326 года: патриарх Макарий поднимал — «воздвигал» — Крест над народом, чтобы все могли его видеть. Праздник вспоминает и возвращение Креста из персидского плена при императоре Ираклии. В этот день соблюдается строгий пост.'
+    },
+    {
+        id: 'presentation-theotokos', kind: 'theotokos', fixed: [11, 4],
+        name: 'Введение во храм Пресвятой Богородицы', short: 'Введение во храм',
+        desc: 'Трёхлетнюю Марию родители привели в Иерусалимский храм, и первосвященник Захария ввёл Её во Святое святых, куда сам входил лишь раз в году. Там Она жила и воспитывалась до совершеннолетия. Праздник приходится на Рождественский пост.'
+    },
+    {
+        id: 'nativity', kind: 'lord', fixed: [0, 7],
+        name: 'Рождество Христово', short: 'Рождество Христово',
+        desc: 'Рождение Иисуса Христа в Вифлееме, в пещере, служившей хлевом; первыми Младенцу поклонились пастухи, затем пришли волхвы с Востока с дарами. Празднику предшествуют сорокадневный пост и строгий сочельник. Отдельно от Богоявления его стали отмечать с IV века.'
+    },
+    {
+        id: 'theophany', kind: 'lord', fixed: [0, 19],
+        name: 'Крещение Господне', short: 'Крещение Господне', aka: 'Богоявление',
+        desc: 'Иоанн Креститель крестил Христа в водах Иордана. В этот момент явилась вся Троица: с неба прозвучал голос Отца, а Дух сошёл в виде голубя, — отсюда второе название, Богоявление. В сочельник и в сам праздник совершается великое освящение воды.'
+    },
+    {
+        id: 'meeting', kind: 'lord', fixed: [1, 15],
+        name: 'Сретение Господне', short: 'Сретение Господне',
+        desc: 'На сороковой день после Рождества Мария и Иосиф принесли Младенца в Иерусалимский храм. Их встретили праведный старец Симеон, которому было обещано не умереть, пока не увидит Спасителя, и пророчица Анна. «Сретение» по-славянски — встреча: человека с Богом.'
+    },
+    {
+        id: 'annunciation', kind: 'theotokos', fixed: [3, 7],
+        name: 'Благовещение Пресвятой Богородицы', short: 'Благовещение',
+        desc: 'Архангел Гавриил принёс Деве Марии в Назарет благую весть: Она станет Матерью Сына Божия. Ответ Марии — «Се, раба Господня; да будет Мне по слову твоему». Праздник отстоит от Рождества Христова ровно на девять месяцев и почти всегда приходится на Великий пост.'
+    },
+    {
+        id: 'palm', kind: 'lord', offset: -7,
+        name: 'Вход Господень в Иерусалим', short: 'Вход в Иерусалим', aka: 'Вербное воскресенье',
+        desc: 'За неделю до Пасхи Христос въехал в Иерусалим на осле, и народ встречал Его пальмовыми ветвями с возгласом «Осанна!». На Руси вместо пальм освящают распустившуюся вербу. Праздником открывается Страстная седмица.'
+    },
+    {
+        id: 'pascha', kind: 'pascha', offset: 0,
+        name: 'Светлое Христово Воскресение', short: 'Пасха', aka: 'Пасха',
+        desc: 'Пасха не входит в число двунадесятых: это «праздник праздников», стоящий над ними. От её даты отсчитываются три переходящих двунадесятых праздника. Дата вычисляется по александрийской пасхалии — первое воскресенье после весеннего полнолуния по юлианскому календарю.'
+    },
+    {
+        id: 'ascension', kind: 'lord', offset: 39,
+        name: 'Вознесение Господне', short: 'Вознесение',
+        desc: 'На сороковой день после Воскресения Христос вывел апостолов на Елеонскую гору, благословил их и вознёсся на небо, пообещав послать Духа Утешителя. Праздник всегда выпадает на четверг; накануне совершается отдание Пасхи.'
+    },
+    {
+        id: 'pentecost', kind: 'lord', offset: 49,
+        name: 'День Святой Троицы', short: 'Троица', aka: 'Пятидесятница',
+        desc: 'На пятидесятый день после Пасхи на апостолов сошёл Святой Дух в виде огненных языков, и они заговорили на разных наречиях, чтобы проповедовать всем народам. Этот день считают днём рождения Церкви. Храмы украшают берёзовыми ветвями и свежей травой.'
+    },
+    {
+        id: 'transfiguration', kind: 'lord', fixed: [7, 19],
+        name: 'Преображение Господне', short: 'Преображение', aka: 'Яблочный Спас',
+        desc: 'На горе Фавор Христос явил апостолам Петру, Иакову и Иоанну Божественную славу: Его лицо просияло, как солнце, одежды стали белыми, как свет, и рядом явились пророки Моисей и Илия. В этот день освящают плоды нового урожая, отсюда народное название — Яблочный Спас.'
+    },
+    {
+        id: 'dormition', kind: 'theotokos', fixed: [7, 28],
+        name: 'Успение Пресвятой Богородицы', short: 'Успение',
+        desc: 'Кончина Божией Матери в Иерусалиме. По преданию, апостолы чудесно собрались со всех концов света проститься с Ней, а на третий день гроб оказался пуст — Богородица была взята на небо. Праздником завершается церковный год; ему предшествует двухнедельный Успенский пост.'
+    }
+]
+
+const FASTS = [
+    {
+        id: 'great-lent', name: 'Великий пост', from: { easter: -48 }, to: { easter: -1 },
+        desc: 'Самый долгий и строгий пост года: Святая Четыредесятница в память сорокадневного поста Христа в пустыне и Страстная седмица перед Пасхой. Начинается в Чистый понедельник, после Прощёного воскресенья, и длится 48 дней.'
+    },
+    {
+        id: 'apostles-fast', name: 'Петров пост', from: { easter: 57 }, to: { fixed: [6, 11] },
+        desc: 'Апостольский пост перед днём святых первоверховных апостолов Петра и Павла (12 июля). Начинается в понедельник после Недели всех святых, поэтому его длина зависит от даты Пасхи — от 8 до 42 дней.'
+    },
+    {
+        id: 'dormition-fast', name: 'Успенский пост', from: { fixed: [7, 14] }, to: { fixed: [7, 27] },
+        desc: 'Двухнедельный пост перед Успением Пресвятой Богородицы. По строгости близок к Великому; послабление — рыба на Преображение Господне.'
+    },
+    {
+        id: 'nativity-fast', name: 'Рождественский пост', from: { fixed: [10, 28] }, to: { fixed: [0, 6], nextYear: true },
+        desc: 'Сорокадневный пост перед Рождеством Христовым, в народе — Филиппов: начинается на следующий день после памяти апостола Филиппа. Завершается строгим сочельником 6 января.'
+    },
+    {
+        id: 'theophany-eve', name: 'Крещенский сочельник', from: { fixed: [0, 18] }, to: { fixed: [0, 18] }, oneDay: true,
+        desc: 'Строгий однодневный пост накануне Крещения Господня. В этот день совершается первое великое освящение воды.'
+    },
+    {
+        id: 'beheading', name: 'Усекновение главы Иоанна Предтечи', from: { fixed: [8, 11] }, to: { fixed: [8, 11] }, oneDay: true,
+        desc: 'Однодневный пост в память казни Иоанна Крестителя по приказу царя Ирода.'
+    },
+    {
+        id: 'exaltation-fast', name: 'Воздвижение Креста', from: { fixed: [8, 27] }, to: { fixed: [8, 27] }, oneDay: true,
+        desc: 'Двунадесятый праздник, который одновременно строгий однодневный пост — в память о Крестных страданиях Спасителя.'
+    }
+]
+
+const MONTHS = ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь']
+const MONTHS_GEN = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря']
+const WEEKDAYS = ['воскресенье', 'понедельник', 'вторник', 'среда', 'четверг', 'пятница', 'суббота']
+const KIND_LABEL = { lord: 'Господский', theotokos: 'Богородичный', pascha: 'Праздник праздников' }
+const SEASONS = [
+    { cls: 'winter', name: 'Зима', from: [11, 1], to: [2, 1] },
+    { cls: 'spring', name: 'Весна', from: [2, 1], to: [5, 1] },
+    { cls: 'summer', name: 'Лето', from: [5, 1], to: [8, 1] },
+    { cls: 'autumn', name: 'Осень', from: [8, 1], to: [11, 1] }
+]
+const DAY = 864e5
+const C = 450
+// Два режима круга: полный и компактный. Компактный — когда круг уже 420px на телефоне: мобильная ширина
+// окна или сенсорный экран (телефон горизонтально). С мышью от 640px круг всегда полный, даже в невысоком окне.
+// В компактном надписи и маркеры крупнее относительно круга, мелкие деления и числа дней скрыты.
+const GEOMETRY = {
+    full: {
+        seasonIn: 196, seasonOut: 252, monthIn: 258, monthOut: 330, dayIn: 336, dayOut: 390,
+        orbits: [410, 430], dot: 7.5, paschaDot: 9, pinScale: 1, gapDays: 3, tap: 6, edge: 4, todayDot: 4, markFrom: 196,
+        dayNums: true, months: MONTHS
+    },
+    compact: {
+        seasonIn: 166, seasonOut: 224, monthIn: 230, monthOut: 304, dayIn: 310, dayOut: 356,
+        orbits: [386, 426], dot: 13, paschaDot: 16, pinScale: 1.7, gapDays: 6, tap: 12, edge: 8, todayDot: 7, markFrom: 312,
+        dayNums: false, months: ['янв', 'фев', 'мар', 'апр', 'май', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек']
+    }
+}
+const COMPACT_BELOW = 420
+const MOBILE_BELOW = 640
+const coarsePointer = window.matchMedia('(pointer: coarse)')
+let G = GEOMETRY.full
+const NS = 'http://www.w3.org/2000/svg'
+
+const now = new Date()
+const TODAY = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate())
+
+const state = { year: now.getFullYear(), selected: null, feasts: [], fasts: [] }
+
+const svg = document.getElementById('wheel')
+const centerEl = document.getElementById('center')
+const detailEl = document.getElementById('detail')
+const listEl = document.getElementById('feast-list')
+const fastListEl = document.getElementById('fast-list')
+
+function utc(y, m, d) { return Date.UTC(y, m, d) }
+function isLeap(y) { return (y % 4 === 0 && y % 100 !== 0) || y % 400 === 0 }
+function daysInYear(y) { return isLeap(y) ? 366 : 365 }
+function doy(y, t) { return Math.round((t - utc(y, 0, 1)) / DAY) }
+function fmt(t) { const d = new Date(t); return `${d.getUTCDate()} ${MONTHS_GEN[d.getUTCMonth()]}` }
+function weekday(t) { return WEEKDAYS[new Date(t).getUTCDay()] }
+function oldStyle(t) { return fmt(t - 13 * DAY) }
+function plural(n, forms) {
+    const a = Math.abs(n) % 100, b = a % 10
+    if (a > 10 && a < 20) return forms[2]
+    if (b > 1 && b < 5) return forms[1]
+    if (b === 1) return forms[0]
+    return forms[2]
+}
+function relative(t) {
+    const diff = Math.round((t - TODAY) / DAY)
+    if (diff === 0) return 'сегодня'
+    if (diff === 1) return 'завтра'
+    if (diff === -1) return 'вчера'
+    const n = Math.abs(diff)
+    const word = `${n} ${plural(n, ['день', 'дня', 'дней'])}`
+    return diff > 0 ? `через ${word}` : `${word} назад`
+}
+
+// Православная Пасха: алгоритм Меёса для юлианского календаря, перевод в новый стиль (+13 дней, 1900–2099).
+function orthodoxEaster(y) {
+    const a = y % 4, b = y % 7, c = y % 19
+    const d = (19 * c + 15) % 30
+    const e = (2 * a + 4 * b - d + 34) % 7
+    const month = Math.floor((d + e + 114) / 31)
+    const day = ((d + e + 114) % 31) + 1
+    return utc(y, month - 1, day) + 13 * DAY
+}
+
+function fastBound(b, y, easter) {
+    return b.easter !== undefined ? easter + b.easter * DAY : utc(b.nextYear ? y + 1 : y, b.fixed[0], b.fixed[1])
+}
+
+// Отрезки постов, задевающие год y: Рождественский пост прошлого года заходит в январь.
+function computeFasts(y) {
+    const out = []
+    for (const yy of [y - 1, y]) {
+        const easter = orthodoxEaster(yy)
+        for (const f of FASTS) {
+            const t0 = fastBound(f.from, yy, easter), t1 = fastBound(f.to, yy, easter)
+            if (t1 < utc(y, 0, 1) || t0 > utc(y, 11, 31)) continue
+            out.push({ ...f, t0, t1, len: Math.round((t1 - t0) / DAY) + 1, own: yy === y })
+        }
+    }
+    return out
+}
+
+function fastAt(t) { return state.fasts.find(f => t >= f.t0 && t <= f.t1) }
+function shortDate(t) { const d = new Date(t); return `${String(d.getUTCDate()).padStart(2, '0')}.${String(d.getUTCMonth() + 1).padStart(2, '0')}` }
+
+function computeFeasts(y) {
+    const easter = orthodoxEaster(y)
+    return FEASTS.map(f => {
+        const t = f.fixed ? utc(y, f.fixed[0], f.fixed[1]) : easter + f.offset * DAY
+        return { ...f, t, day: doy(y, t) }
+    })
+}
+
+function ang(d, n) { return (d / n) * 2 * Math.PI - Math.PI / 2 }
+function pt(r, a) { return [(C + r * Math.cos(a)).toFixed(2), (C + r * Math.sin(a)).toFixed(2)] }
+function sector(r0, r1, a0, a1) {
+    const large = a1 - a0 > Math.PI ? 1 : 0
+    const [x1, y1] = pt(r1, a0), [x2, y2] = pt(r1, a1), [x3, y3] = pt(r0, a1), [x4, y4] = pt(r0, a0)
+    return `M${x1} ${y1}A${r1} ${r1} 0 ${large} 1 ${x2} ${y2}L${x3} ${y3}A${r0} ${r0} 0 ${large} 0 ${x4} ${y4}Z`
+}
+function arc(r, a0, a1, reverse) {
+    const large = a1 - a0 > Math.PI ? 1 : 0
+    const [x1, y1] = pt(r, a0), [x2, y2] = pt(r, a1)
+    return reverse
+        ? `M${x2} ${y2}A${r} ${r} 0 ${large} 0 ${x1} ${y1}`
+        : `M${x1} ${y1}A${r} ${r} 0 ${large} 1 ${x2} ${y2}`
+}
+function node(tag, attrs, parent) {
+    const e = document.createElementNS(NS, tag)
+    for (const k in attrs) e.setAttribute(k, attrs[k])
+    if (parent) parent.appendChild(e)
+    return e
+}
+function arcLabel(parent, id, r, a0, a1, text, cls) {
+    const mid = (a0 + a1) / 2
+    const bottom = Math.sin(mid) > 0.05
+    node('path', { id, d: arc(r, a0, a1, bottom), fill: 'none' }, parent)
+    const label = node('text', { class: cls, 'dominant-baseline': 'middle', 'text-anchor': 'middle' }, parent)
+    const tp = node('textPath', { href: `#${id}`, startOffset: '50%' }, label)
+    tp.textContent = text
+}
+
+function draw() {
+    const y = state.year
+    const n = daysInYear(y)
+    svg.textContent = ''
+    const defs = node('g', {}, svg)
+
+    for (const s of SEASONS) {
+        let d0 = doy(y, utc(y, s.from[0], s.from[1]))
+        let d1 = doy(y, utc(y, s.to[0], s.to[1]))
+        if (d1 <= d0) d1 += n
+        const a0 = ang(d0, n), a1 = ang(d1, n)
+        node('path', { class: `season ${s.cls}`, d: sector(G.seasonIn, G.seasonOut, a0, a1) }, svg)
+        arcLabel(defs, `season-${s.cls}`, (G.seasonIn + G.seasonOut) / 2, a0, a1, s.name, 'ring-label season-label')
+    }
+
+    for (let m = 0; m < 12; m++) {
+        const d0 = doy(y, utc(y, m, 1)), d1 = doy(y, utc(y, m + 1, 1))
+        const a0 = ang(d0, n), a1 = ang(d1, n)
+        node('path', { class: `month ${m % 2 ? 'b' : 'a'}`, d: sector(G.monthIn, G.monthOut, a0, a1) }, svg)
+        arcLabel(defs, `month-${m}`, (G.monthIn + G.monthOut) / 2, a0, a1, G.months[m], 'ring-label')
+    }
+    svg.appendChild(defs)
+
+    const bands = node('g', {}, svg)
+    for (const f of state.fasts) {
+        const d0 = Math.max(0, doy(y, f.t0)), d1 = Math.min(n, doy(y, f.t1) + 1)
+        const band = node('path', { class: 'fast-band', d: sector(G.dayIn, G.dayOut, ang(d0, n), ang(d1, n)) }, bands)
+        band.dataset.fast = f.id
+        node('path', { class: 'fast-edge', d: sector(G.dayIn, G.dayIn + G.edge, ang(d0, n), ang(d1, n)) }, bands)
+    }
+
+    const ticks = node('g', {}, svg)
+    const span = G.dayOut - G.dayIn
+    for (let i = 0; i < n; i++) {
+        const date = new Date(utc(y, 0, 1 + i)).getUTCDate()
+        let len = span * 0.15, cls = 'tick', a = ang(i + 0.5, n)
+        if (date === 1) { len = span; cls = 'tick major'; a = ang(i, n) }
+        else if (date % 10 === 0) { len = span * 0.45; cls = 'tick mid' }
+        else if (date % 5 === 0) { len = span * 0.28; cls = 'tick mid' }
+        if (!G.dayNums && date % 10 !== 0 && date !== 1) continue
+        const [x1, y1] = pt(G.dayOut, a), [x2, y2] = pt(G.dayOut - len, a)
+        node('line', { class: cls, x1, y1, x2, y2 }, ticks)
+        if (G.dayNums && date % 10 === 0) {
+            const [tx, ty] = pt(G.dayOut - len - 9, ang(i + 0.5, n))
+            const num = node('text', { class: 'day-num', x: tx, y: ty, 'text-anchor': 'middle', 'dominant-baseline': 'middle' }, ticks)
+            num.textContent = date
+        }
+    }
+
+    {
+        const a = ang(doy(y, utc(y, 8, 14)), n)
+        const [x1, y1] = pt(G.markFrom, a), [x2, y2] = pt(G.dayOut, a)
+        node('line', { class: 'newyear', x1, y1, x2, y2 }, svg)
+    }
+
+    if (new Date(TODAY).getUTCFullYear() === y) {
+        const a = ang(doy(y, TODAY) + 0.5, n)
+        const [x1, y1] = pt(G.markFrom - 6, a), [x2, y2] = pt(G.dayOut + 4, a)
+        node('line', { class: 'today-line', x1, y1, x2, y2 }, svg)
+        node('circle', { class: 'today-dot', cx: x1, cy: y1, r: G.todayDot }, svg)
+    }
+
+    const hits = node('g', {}, svg)
+    for (let i = 0; i < n; i++) {
+        const p = node('path', { class: 'hit', d: sector(G.dayIn, G.dayOut + 6, ang(i, n), ang(i + 1, n)) }, hits)
+        p.dataset.day = i
+        p.dataset.month = new Date(utc(y, 0, 1 + i)).getUTCMonth()
+    }
+
+    // Близкие даты (например, Вход в Иерусалим, Благовещение и Пасха) разводим по двум орбитам:
+    // маркер встаёт на первую орбиту, где от предыдущего маркера больше gapDays дней.
+    const items = [
+        ...state.feasts.map(f => ({ type: 'feast', f, day: f.day })),
+        ...state.fasts.filter(f => f.own && !f.oneDay).map(f => ({ type: 'pin', f, day: doy(y, f.t0) }))
+    ].sort((a, b) => a.day - b.day)
+    const last = G.orbits.map(() => -Infinity)
+    for (const it of items) {
+        let level = last.findIndex(d => it.day - d > G.gapDays)
+        if (level === -1) level = last.indexOf(Math.min(...last))
+        it.level = level
+        last[level] = it.day
+    }
+    const markers = node('g', {}, svg)
+    for (const it of items) {
+        const f = it.f
+        const a = ang(it.day + 0.5, n)
+        const r = G.orbits[it.level]
+        const [sx, sy] = pt(G.dayIn, a)
+        const [cx, cy] = pt(r, a)
+        if (it.type === 'pin') {
+            const head = 14 * G.pinScale
+            const g = node('g', {
+                class: 'pin', tabindex: '0', role: 'button',
+                'aria-label': `Начало поста: ${f.name}, ${fmt(f.t0)}`
+            }, markers)
+            g.dataset.fast = f.id
+            const [tx, ty] = pt(r - head, a)
+            node('line', { class: 'spoke', x1: sx, y1: sy, x2: tx, y2: ty }, g)
+            node('circle', { class: 'halo', cx, cy, r: 13 * G.pinScale }, g)
+            const shape = node('g', { transform: `translate(${tx} ${ty}) rotate(${((a + Math.PI / 2) * 180) / Math.PI}) scale(${G.pinScale})` }, g)
+            node('path', { class: 'head', d: 'M0 0C-3 -4 -7.5 -8 -7.5 -14A7.5 7.5 0 1 1 7.5 -14C7.5 -8 3 -4 0 0Z' }, shape)
+            node('circle', { class: 'eye', cx: 0, cy: -14, r: 2.8 }, shape)
+            node('circle', { class: 'tap', cx, cy, r: 8 * G.pinScale + G.tap }, g)
+            continue
+        }
+        const dotR = f.kind === 'pascha' ? G.paschaDot : G.dot
+        const g = node('g', {
+            class: `feast ${f.kind}`, tabindex: '0', role: 'button',
+            'aria-label': `${f.name}, ${fmt(f.t)}`
+        }, markers)
+        g.dataset.id = f.id
+        const [x2, y2] = pt(r - dotR, a)
+        node('line', { class: 'spoke', x1: sx, y1: sy, x2, y2 }, g)
+        node('circle', { class: 'halo', cx, cy, r: dotR + 5 }, g)
+        node('circle', { class: 'dot', cx, cy, r: dotR }, g)
+        node('circle', { class: 'tap', cx, cy, r: dotR + G.tap }, g)
+    }
+}
+
+function renderList() {
+    const newYear = doy(state.year, utc(state.year, 8, 14))
+    const ordered = [...state.feasts].sort((a, b) => {
+        const ka = (a.day - newYear + 400) % 400, kb = (b.day - newYear + 400) % 400
+        return ka - kb
+    })
+    listEl.textContent = ''
+    for (const f of ordered) {
+        const li = document.createElement('li')
+        const b = document.createElement('button')
+        b.type = 'button'
+        b.dataset.id = f.id
+        if (f.kind === 'pascha') b.classList.add('pascha-row')
+        b.innerHTML = `<i class="sw ${f.kind}"></i><span class="d">${fmt(f.t)}</span><span class="n">${f.short}</span>`
+        li.appendChild(b)
+        listEl.appendChild(li)
+    }
+}
+
+function feastById(id) { return state.feasts.find(f => f.id === id) }
+function mobility(f) { return f.fixed ? 'непереходящий' : 'переходящий' }
+
+// На компактном круге в центре только число и сокращённый месяц — остальное в блоке описания.
+function renderCenterCompact(t) {
+    if (G !== GEOMETRY.compact) return false
+    const d = new Date(t)
+    centerEl.innerHTML = `<div class="date">${d.getUTCDate()} ${G.months[d.getUTCMonth()]}</div>`
+    return true
+}
+
+function renderCenterFeast(f) {
+    if (renderCenterCompact(f.t)) return
+    const kind = f.kind === 'pascha' ? 'Пасха' : `${KIND_LABEL[f.kind]} · ${mobility(f)}`
+    centerEl.innerHTML = `
+        <div class="eyebrow"><i class="mark ${f.kind}"></i>${kind}</div>
+        <div class="name">${f.short}</div>
+        <div class="date">${fmt(f.t)}</div>
+        <div class="sub">${weekday(f.t)} · ${oldStyle(f.t)} ст. ст.<br>${relative(f.t)}</div>`
+}
+
+function renderCenterDay(i) {
+    const t = utc(state.year, 0, 1 + i)
+    if (renderCenterCompact(t)) return
+    const next = state.feasts.filter(f => f.t >= t).sort((a, b) => a.t - b.t)[0]
+    let note = ''
+    if (i === doy(state.year, utc(state.year, 8, 14))) note = 'Церковное новолетие'
+    else if (next) {
+        const k = Math.round((next.t - t) / DAY)
+        note = k === 0 ? next.short : `до праздника «${next.short}» — ${k} ${plural(k, ['день', 'дня', 'дней'])}`
+    } else note = 'двунадесятых праздников до конца года нет'
+    const fast = fastAt(t)
+    if (fast) {
+        const k = Math.round((t - fast.t0) / DAY) + 1
+        note += fast.oneDay
+            ? `<br><span style="color: var(--fast)">однодневный пост</span>`
+            : `<br><span style="color: var(--fast)">${fast.name} · день ${k} из ${fast.len}</span>`
+    }
+    centerEl.innerHTML = `
+        <div class="eyebrow">${weekday(t)}</div>
+        <div class="date">${fmt(t)}</div>
+        <div class="sub">${oldStyle(t)} по ст. ст.<br>${note}</div>`
+}
+
+function renderDetail(f) {
+    const chips = f.kind === 'pascha'
+        ? `<span class="chip pascha">Праздник праздников</span><span class="chip">переходящий</span>`
+        : `<span class="chip ${f.kind}">${KIND_LABEL[f.kind]}</span><span class="chip">${mobility(f)}</span>`
+    const rule = f.fixed ? '' : `<dt>Правило</dt><dd>${f.offset === 0 ? 'по пасхалии' : f.offset < 0 ? `за ${-f.offset} дней до Пасхи` : `${f.offset + 1}-й день от Пасхи`}</dd>`
+    detailEl.innerHTML = `
+        <div class="kind">${chips}</div>
+        <h2>${f.name}</h2>
+        ${f.aka && f.aka !== f.short ? `<p class="aka">${f.aka}</p>` : ''}
+        <dl>
+            <dt>Дата</dt><dd>${fmt(f.t)}, ${weekday(f.t)}</dd>
+            <dt>Старый стиль</dt><dd>${oldStyle(f.t)}</dd>
+            ${rule}
+            <dt>Когда</dt><dd>${relative(f.t)}</dd>
+        </dl>
+        <p class="desc">${f.desc}</p>`
+    detailEl.scrollTop = 0
+}
+
+function renderFastList() {
+    fastListEl.textContent = ''
+    for (const f of state.fasts.filter(f => f.own)) {
+        const li = document.createElement('li')
+        const b = document.createElement('button')
+        b.type = 'button'
+        b.dataset.fast = f.id
+        const span = f.oneDay ? shortDate(f.t0) : `${shortDate(f.t0)} – ${shortDate(f.t1)}`
+        b.innerHTML = `<i class="sw fast"></i><span class="n">${f.name}</span><span class="len">${span}</span>`
+        li.appendChild(b)
+        fastListEl.appendChild(li)
+    }
+}
+
+function previewFast(id) {
+    const f = state.fasts.find(x => x.id === id && x.own) || state.fasts.find(x => x.id === id)
+    svg.querySelectorAll('.fast-band').forEach(e => e.classList.toggle('lit', e.dataset.fast === id))
+    const length = `${f.len} ${plural(f.len, ['день', 'дня', 'дней'])}`
+    const range = f.oneDay ? fmt(f.t0) : `${fmt(f.t0)} — ${fmt(f.t1)}`
+    if (!renderCenterCompact(f.t0)) centerEl.innerHTML = `
+        <div class="eyebrow"><i class="mark fast"></i>${f.oneDay ? 'Однодневный пост' : 'Многодневный пост'}</div>
+        <div class="name">${f.name}</div>
+        <div class="sub">${range}${f.oneDay ? '' : `<br>${length}`}</div>`
+    detailEl.innerHTML = `
+        <div class="kind"><span class="chip fast">Пост</span><span class="chip">${f.oneDay ? 'однодневный' : 'многодневный'}</span></div>
+        <h2>${f.name}</h2>
+        <dl>
+            ${f.oneDay
+                ? `<dt>Дата</dt><dd>${fmt(f.t0)}, ${weekday(f.t0)}</dd>`
+                : `<dt>Начало</dt><dd>${fmt(f.t0)}, ${weekday(f.t0)}</dd>
+                   <dt>Окончание</dt><dd>${fmt(f.t1)}, ${weekday(f.t1)}</dd>
+                   <dt>Длится</dt><dd>${length}</dd>`}
+            <dt>Когда</dt><dd>${TODAY >= f.t0 && TODAY <= f.t1 ? 'идёт сейчас' : relative(f.t0)}</dd>
+        </dl>
+        <p class="desc">${f.desc}</p>`
+    detailEl.scrollTop = 0
+    markActive(`fast:${id}`)
+}
+
+function unlitFasts() {
+    svg.querySelectorAll('.fast-band').forEach(e => e.classList.remove('lit'))
+}
+
+function markActive(key) {
+    document.querySelectorAll('[data-id], .pin, #fast-list button').forEach(e => {
+        const k = e.dataset.id ?? `fast:${e.dataset.fast}`
+        e.classList.toggle('is-active', k === key)
+        e.classList.toggle('is-selected', k === state.selected)
+    })
+}
+
+function preview(id) {
+    unlitFasts()
+    const f = feastById(id)
+    renderCenterFeast(f)
+    renderDetail(f)
+    markActive(id)
+}
+function show(key) { key.startsWith('fast:') ? previewFast(key.slice(5)) : preview(key) }
+function restore() { unlitFasts(); show(state.selected); markActive(null) }
+function select(id) { state.selected = id; restore() }
+
+function litMonth(m) {
+    svg.querySelectorAll('.month').forEach((e, i) => e.classList.toggle('lit', i === m))
+}
+
+svg.addEventListener('pointerover', e => {
+    const feast = e.target.closest('.feast')
+    if (feast) { preview(feast.dataset.id); litMonth(-1); return }
+    const pin = e.target.closest('.pin')
+    if (pin) { previewFast(pin.dataset.fast); litMonth(-1); return }
+    const hit = e.target.closest('.hit')
+    if (hit) { unlitFasts(); renderCenterDay(+hit.dataset.day); litMonth(+hit.dataset.month); markActive(null) }
+})
+svg.addEventListener('pointerleave', e => { if (e.pointerType !== 'mouse') return; litMonth(-1); restore() })
+svg.addEventListener('click', e => {
+    const feast = e.target.closest('.feast')
+    if (feast) select(feast.dataset.id)
+    const pin = e.target.closest('.pin')
+    if (pin) select(`fast:${pin.dataset.fast}`)
+})
+svg.addEventListener('focusin', e => {
+    const f = e.target.closest('.feast')
+    if (f) preview(f.dataset.id)
+    const pin = e.target.closest('.pin')
+    if (pin) previewFast(pin.dataset.fast)
+})
+svg.addEventListener('focusout', restore)
+svg.addEventListener('keydown', e => {
+    if (e.key !== 'Enter' && e.key !== ' ') return
+    const f = e.target.closest('.feast')
+    const pin = e.target.closest('.pin')
+    if (f) { e.preventDefault(); select(f.dataset.id) }
+    if (pin) { e.preventDefault(); select(`fast:${pin.dataset.fast}`) }
+})
+
+listEl.addEventListener('pointerover', e => { const b = e.target.closest('button'); if (b) preview(b.dataset.id) })
+listEl.addEventListener('pointerleave', restore)
+listEl.addEventListener('click', e => { const b = e.target.closest('button'); if (b) select(b.dataset.id) })
+
+fastListEl.addEventListener('pointerover', e => { const b = e.target.closest('button'); if (b) previewFast(b.dataset.fast) })
+fastListEl.addEventListener('pointerleave', restore)
+fastListEl.addEventListener('click', e => { const b = e.target.closest('button'); if (b) select(`fast:${b.dataset.fast}`) })
+fastListEl.addEventListener('focusin', e => { const b = e.target.closest('button'); if (b) previewFast(b.dataset.fast) })
+fastListEl.addEventListener('focusout', restore)
+
+function setYear(y) {
+    state.year = Math.min(2099, Math.max(1901, y))
+    document.getElementById('year-label').textContent = state.year
+    state.feasts = computeFeasts(state.year)
+    state.fasts = computeFasts(state.year)
+    if (!state.selected) {
+        const upcoming = state.feasts.filter(f => f.t >= TODAY).sort((a, b) => a.t - b.t)
+        state.selected = (upcoming[0] || state.feasts[state.feasts.length - 1]).id
+    }
+    draw()
+    renderList()
+    renderFastList()
+    restore()
+}
+
+document.getElementById('prev-year').addEventListener('click', () => setYear(state.year - 1))
+document.getElementById('next-year').addEventListener('click', () => setYear(state.year + 1))
+document.getElementById('this-year').addEventListener('click', () => { state.selected = null; setYear(now.getFullYear()) })
+
+const wheelEl = document.querySelector('.wheel')
+function applyMode(width) {
+    const compact = width < COMPACT_BELOW && (window.innerWidth < MOBILE_BELOW || coarsePointer.matches)
+    if ((G === GEOMETRY.compact) === compact && svg.childElementCount) return false
+    G = compact ? GEOMETRY.compact : GEOMETRY.full
+    wheelEl.classList.toggle('compact', compact)
+    svg.classList.toggle('compact', compact)
+    return true
+}
+applyMode(wheelEl.getBoundingClientRect().width)
+function syncMode() {
+    if (applyMode(wheelEl.getBoundingClientRect().width)) { draw(); restore() }
+}
+new ResizeObserver(syncMode).observe(wheelEl)
+window.addEventListener('resize', syncMode)
+
+setYear(state.year)
+</script>
+</body>
+</html>
