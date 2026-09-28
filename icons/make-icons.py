@@ -1,11 +1,11 @@
-# Иконки приложения: восьмиконечный православный крест цвета --gold (тёмная тема) на #10151f.
+# Иконки приложения: восьмиконечный православный крест голубого цвета (--lapis тёмной темы) на #10151f.
 # Координаты — в долях стороны; крест вписан в безопасную зону maskable-иконки (круг радиусом 0.4).
 import math
 import sys
 from PIL import Image, ImageDraw
 
 BG = (16, 21, 31)
-GOLD = (216, 174, 87)
+CROSS = (130, 168, 232)  # #82a8e8
 T = 0.062  # толщина перекладин
 
 # Отрезки: (x1, y1, x2, y2, толщина). Нижняя перекладина — левый для смотрящего конец выше.
@@ -30,7 +30,7 @@ def icon(size):
     im = Image.new('RGB', (big, big), BG)
     d = ImageDraw.Draw(im)
     for b in BARS:
-        d.polygon(bar_polygon(*b, big), fill=GOLD)
+        d.polygon(bar_polygon(*b, big), fill=CROSS)
     return im.resize((size, size), Image.LANCZOS)
 
 
