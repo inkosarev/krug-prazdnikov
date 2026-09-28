@@ -45,6 +45,9 @@ img { max-width: 100%; }
     --focus: #2b5aa2;
     --fast: #7b5fa8;
     --sun: #2f7d74;
+    --moon: #6f7b93;
+    --moon-new: #6f7b93;
+    --moon-full: #fbf1c7;
     --display: 'Old Standard TT', 'Times New Roman', Georgia, serif;
     --body: 'PT Sans', 'Segoe UI', Roboto, Arial, sans-serif;
 }
@@ -68,6 +71,9 @@ img { max-width: 100%; }
         --focus: #82a8e8;
         --fast: #a88bd6;
         --sun: #6cc3b6;
+        --moon: #d4dae6;
+        --moon-new: #10151f;
+        --moon-full: #d4dae6;
     }
 }
 :root[data-theme="light"] { color-scheme: light; }
@@ -91,6 +97,9 @@ img { max-width: 100%; }
     --focus: #82a8e8;
     --fast: #a88bd6;
     --sun: #6cc3b6;
+    --moon: #d4dae6;
+    --moon-new: #10151f;
+    --moon-full: #d4dae6;
 }
 
 * { box-sizing: border-box; }
@@ -205,6 +214,8 @@ button:focus-visible, .feast:focus-visible, .pin:focus-visible, g.sun:focus-visi
     container-type: inline-size;
 }
 .wheel svg { display: block; width: 100%; height: 100%; }
+/* Chrome фокусирует сам svg по клику в пустое место — рамка вокруг всего круга не нужна. */
+#wheel:focus { outline: none; }
 .season { stroke: var(--ground); stroke-width: 3; }
 .season.winter { fill: var(--winter); }
 .season.spring { fill: var(--spring); }
@@ -405,6 +416,38 @@ svg.compact .sun .halo { stroke-width: 3; }
 .legend .sun-icon, .layers .sun-icon { width: 14px; height: 14px; display: block; }
 .chip.sun { color: var(--sun); border-color: var(--sun); }
 .mark.sun { background: var(--sun); }
+.moon-track { fill: var(--ground); pointer-events: none; }
+.moon { pointer-events: none; stroke: var(--moon); stroke-width: 1.5; }
+.moon.full { fill: var(--moon-full); }
+.moon.new { fill: var(--moon-new); }
+svg.compact .moon { stroke-width: 2.4; }
+.moon-mark { cursor: pointer; outline: none; }
+.moon-mark .halo { fill: none; stroke: var(--moon); stroke-width: 1.6; opacity: 0; transition: opacity .15s; }
+.moon-mark:hover .halo, .moon-mark.is-selected .halo, .moon-mark.is-active .halo, .moon-mark:focus-visible .halo { opacity: 1; }
+svg.compact .moon-mark .halo { stroke-width: 2.6; }
+/* Курсор выбранного дня. */
+/* Курсор выбранного дня — как линия «сегодня», шарик у внутреннего конца; цвет — по выбранному событию. */
+.day-cursor { --c: var(--focus); pointer-events: none; }
+.day-cursor line { stroke: var(--c); stroke-width: 2.4; }
+.day-cursor circle { fill: var(--c); }
+svg.compact .day-cursor line { stroke-width: 5; }
+.day-cursor.lord { --c: var(--gold); }
+.day-cursor.theotokos { --c: var(--lapis); }
+.day-cursor.pascha { --c: var(--cinnabar); }
+.day-cursor.fast { --c: var(--fast); }
+.day-cursor.sun { --c: var(--sun); }
+.day-cursor.moon { --c: var(--moon); }
+.chip.moon { color: var(--moon); border-color: var(--moon); }
+.moon-icon, .wheel .moon-icon { display: inline-block; width: 1.15em; height: 1.15em; vertical-align: -.22em; margin-right: .35em; }
+.detail .moon-icon { width: 1.05em; height: 1.05em; }
+/* Точки событий дня в центре компактного круга. */
+.center .dots { display: flex; justify-content: center; gap: 1.6cqw; margin-top: .6cqw; }
+.center .dots i { width: 3.4cqw; height: 3.4cqw; border-radius: 50%; }
+.center .dots i.fast { border-radius: .8cqw; }
+.mark.moon-new { background: var(--moon-new); box-shadow: inset 0 0 0 1.5px var(--moon); }
+.mark.moon-full { background: var(--moon-full); box-shadow: inset 0 0 0 1.5px var(--moon); }
+.legend .moon-sw { display: inline-block; width: 10px; height: 10px; border-radius: 50%; border: 1.5px solid var(--moon); background: var(--moon-new); }
+.legend .moon-sw.full { background: var(--moon-full); }
 .legend [data-layer] { transition: opacity .15s; }
 .legend [data-layer].off { opacity: .4; }
 
@@ -582,6 +625,8 @@ svg.compact .feast .halo, svg.compact .pin .halo { stroke-width: 3; }
             <div class="legend legend-fasts">
                 <span data-layer="fasts"><i class="sw fast"></i>Пост</span>
                 <span data-layer="sun"><svg class="sun-icon" viewBox="-12 -12 24 24" aria-hidden="true"><path style="stroke: var(--sun)" stroke-width="2" stroke-linecap="round" d="M0 -10.5V-8M0 10.5V8M-10.5 0H-8M10.5 0H8M-7.4 -7.4L-5.7 -5.7M7.4 7.4L5.7 5.7M-7.4 7.4L-5.7 5.7M7.4 -7.4L5.7 -5.7"></path><circle style="fill: var(--sun)" r="5"></circle></svg>Солнцестояние</span>
+                <span data-layer="moon"><i class="moon-sw"></i>Новолуние</span>
+                <span data-layer="moon"><i class="moon-sw full"></i>Полнолуние</span>
                 <span data-layer="fasts"><svg class="pin-icon" viewBox="-8.5 -23 17 24" aria-hidden="true"><path style="fill: var(--fast)" d="M0 0C-3 -4 -7.5 -8 -7.5 -14A7.5 7.5 0 1 1 7.5 -14C7.5 -8 3 -4 0 0Z"></path><circle style="fill: var(--ground)" cx="0" cy="-14" r="2.8"></circle></svg>Начало поста</span>
                 <span><i class="dash"></i>Церковное новолетие</span>
             </div>
@@ -731,7 +776,8 @@ const SOLAR = [
 const LAYERS = [
     { id: 'feasts', label: 'Праздники', icon: '<i class="sw feasts"></i>' },
     { id: 'fasts', label: 'Посты', icon: '<i class="sw fast"></i>' },
-    { id: 'sun', label: 'Солнцестояния и равноденствия', icon: '<svg class="sun-icon" viewBox="-12 -12 24 24" aria-hidden="true"><path style="stroke: var(--sun)" stroke-width="2" stroke-linecap="round" d="M0 -10.5V-8M0 10.5V8M-10.5 0H-8M10.5 0H8M-7.4 -7.4L-5.7 -5.7M7.4 7.4L5.7 5.7M-7.4 7.4L-5.7 5.7M7.4 -7.4L5.7 -5.7"></path><circle style="fill: var(--sun)" r="5"></circle></svg>' }
+    { id: 'moon', label: 'Луна', icon: '<svg class="sun-icon" viewBox="-12 -12 24 24" aria-hidden="true"><path style="fill: var(--moon)" d="M-1.42 -8.89A9 9 0 1 0 8.14 3.85A8 8 0 0 1 -1.42 -8.89Z"></path></svg>' },
+    { id: 'sun', label: 'Солнцестояния и равноденствия', icon:'<svg class="sun-icon" viewBox="-12 -12 24 24" aria-hidden="true"><path style="stroke: var(--sun)" stroke-width="2" stroke-linecap="round" d="M0 -10.5V-8M0 10.5V8M-10.5 0H-8M10.5 0H8M-7.4 -7.4L-5.7 -5.7M7.4 7.4L5.7 5.7M-7.4 7.4L-5.7 5.7M7.4 -7.4L5.7 -5.7"></path><circle style="fill: var(--sun)" r="5"></circle></svg>' }
 ]
 
 const MONTHS = ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь']
@@ -751,12 +797,12 @@ const C = 450
 // В компактном надписи и маркеры крупнее относительно круга, мелкие деления и числа дней скрыты.
 const GEOMETRY = {
     full: {
-        seasonIn: 196, seasonOut: 252, monthIn: 258, monthOut: 330, dayIn: 336, dayOut: 390,
+        seasonIn: 196, seasonOut: 252, monthIn: 258, monthOut: 330, dayIn: 336, moonTrack: [316, 334], moonR: 5.5, dayOut: 390,
         orbits: [410, 430], dot: 7.5, paschaDot: 9, pinScale: 1, gapDays: 3, tap: 6, edge: 4, todayDot: 4, markFrom: 196, todayFrom: 196,
         dayNums: true, months: MONTHS
     },
     compact: {
-        seasonIn: 166, seasonOut: 224, monthIn: 230, monthOut: 304, dayIn: 310, dayOut: 356,
+        seasonIn: 166, seasonOut: 224, monthIn: 230, monthOut: 304, dayIn: 310, moonTrack: [290, 308], moonR: 7, dayOut: 356,
         orbits: [386, 426], dot: 13, paschaDot: 16, pinScale: 1.7, gapDays: 6, tap: 12, edge: 8, todayDot: 7, markFrom: 312, todayFrom: 166,
         dayNums: false, months: ['янв', 'фев', 'мар', 'апр', 'май', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек']
     }
@@ -770,7 +816,7 @@ const NS = 'http://www.w3.org/2000/svg'
 const now = new Date()
 const TODAY = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate())
 
-const state = { year: now.getFullYear(), selected: null, feasts: [], fasts: [], sun: [], layers: {} }
+const state = { year: now.getFullYear(), selected: null, feasts: [], fasts: [], sun: [], moon: [], layers: {} }
 for (const l of LAYERS) state.layers[l.id] = true
 try { Object.assign(state.layers, JSON.parse(localStorage.getItem('layers')) || {}) } catch (e) {}
 function on(layer) { return state.layers[layer] !== false }
@@ -890,6 +936,89 @@ function solarEvents(y) {
         return { ...s, at, t, day: doy(y, t) }
     })
 }
+// Новолуния и полнолуния: Меёс, гл. 49 (точность ~1 мин). k — номер лунации от 6 янв 2000,
+// целое — новолуние, +0.5 — полнолуние. Средний момент, 25 периодических членов, 14 планетных поправок, ΔT.
+const SYNODIC = 29.530588861
+// [коэффициент для новолуния, для полнолуния, степень E, множители M, M′, F, Ω]
+const MOON_TERMS = [
+    [-0.40720, -0.40614, 0, 0, 1, 0, 0], [0.17241, 0.17302, 1, 1, 0, 0, 0], [0.01608, 0.01614, 0, 0, 2, 0, 0],
+    [0.01039, 0.01043, 0, 0, 0, 2, 0], [0.00739, 0.00734, 1, -1, 1, 0, 0], [-0.00514, -0.00515, 1, 1, 1, 0, 0],
+    [0.00208, 0.00209, 2, 2, 0, 0, 0], [-0.00111, -0.00111, 0, 0, 1, -2, 0], [-0.00057, -0.00057, 0, 0, 1, 2, 0],
+    [0.00056, 0.00056, 1, 1, 2, 0, 0], [-0.00042, -0.00042, 0, 0, 3, 0, 0], [0.00042, 0.00042, 1, 1, 0, 2, 0],
+    [0.00038, 0.00038, 1, 1, 0, -2, 0], [-0.00024, -0.00024, 1, -1, 2, 0, 0], [-0.00017, -0.00017, 0, 0, 0, 0, 1],
+    [-0.00007, -0.00007, 0, 2, 1, 0, 0], [0.00004, 0.00004, 0, 0, 2, -2, 0], [0.00004, 0.00004, 0, 3, 0, 0, 0],
+    [0.00003, 0.00003, 0, 1, 1, -2, 0], [0.00003, 0.00003, 0, 0, 2, 2, 0], [-0.00003, -0.00003, 0, 1, 1, 2, 0],
+    [0.00003, 0.00003, 0, -1, 1, 2, 0], [-0.00002, -0.00002, 0, -1, 1, -2, 0], [-0.00002, -0.00002, 0, 1, 3, 0, 0],
+    [0.00002, 0.00002, 0, 0, 4, 0, 0]
+]
+const MOON_PLANETARY = [
+    [0.000325, 299.77, 0.107408, -0.009173], [0.000165, 251.88, 0.016321], [0.000164, 251.83, 26.651886],
+    [0.000126, 349.42, 36.412478], [0.000110, 84.66, 18.206239], [0.000062, 141.74, 53.303771],
+    [0.000060, 207.14, 2.453732], [0.000056, 154.84, 7.306860], [0.000047, 34.52, 27.261239],
+    [0.000042, 207.19, 0.121824], [0.000040, 291.34, 1.844379], [0.000037, 161.72, 24.198154],
+    [0.000035, 239.56, 25.513099], [0.000023, 331.55, 3.592518]
+]
+function lunation(k) {
+    const rad = Math.PI / 180, full = k % 1 !== 0
+    const T = k / 1236.85
+    let jde = 2451550.09766 + SYNODIC * k + 0.00015437 * T ** 2 - 0.00000015 * T ** 3 + 0.00000000073 * T ** 4
+    const E = 1 - 0.002516 * T - 0.0000074 * T ** 2
+    const M = (2.5534 + 29.1053567 * k - 0.0000014 * T ** 2 - 0.00000011 * T ** 3) * rad
+    const Mp = (201.5643 + 385.81693528 * k + 0.0107582 * T ** 2 + 0.00001238 * T ** 3 - 0.000000058 * T ** 4) * rad
+    const F = (160.7108 + 390.67050284 * k - 0.0016118 * T ** 2 - 0.00000227 * T ** 3 + 0.000000011 * T ** 4) * rad
+    const O = (124.7746 - 1.56375588 * k + 0.0020672 * T ** 2 + 0.00000215 * T ** 3) * rad
+    for (const [cNew, cFull, e, m, mp, f, o] of MOON_TERMS) {
+        jde += (full ? cFull : cNew) * E ** e * Math.sin(m * M + mp * Mp + f * F + o * O)
+    }
+    for (const [c, a, b, t2 = 0] of MOON_PLANETARY) jde += c * Math.sin((a + b * k + t2 * T ** 2) * rad)
+    const y = 2000 + k / 12.3685
+    const at = (jde - 2440587.5) * DAY - deltaT(Math.min(2099, Math.max(1900, y))) * 1000
+    return { type: full ? 'full' : 'new', at, t: Math.floor((at + MSK) / DAY) * DAY }
+}
+// События года y (по московской дате) и последнее новолуние перед годом — для фазы первых дней января.
+function moonPhases(y) {
+    const k0 = Math.floor((y - 2000) * 12.3685) - 2
+    const t0 = utc(y, 0, 1), t1 = utc(y + 1, 0, 1)
+    const out = []
+    for (let k = k0; k < k0 + 17; k += 0.5) {
+        const e = lunation(k)
+        if (e.t >= t1) break
+        if (e.t >= t0) out.push({ ...e, day: doy(y, e.t) })
+        else if (e.type === 'new') out.prevNew = e
+    }
+    return out
+}
+const MOON_NAME = { new: 'Новолуние', full: 'Полнолуние' }
+const MOON_DESC = {
+    new: 'Луна проходит между Землёй и Солнцем и повёрнута к нам неосвещённой стороной — её не видно. С новолуния начинается новый лунный месяц.',
+    full: 'Луна стоит напротив Солнца, и её диск освещён целиком. От первого весеннего полнолуния по пасхалии отсчитывается Пасха.'
+}
+// Фаза в полдень по Москве дня t: растущая/убывающая и доля освещённого диска.
+function moonAge(t) {
+    const noon = t + 12 * 3600e3 - MSK
+    const news = [state.moon.prevNew, ...state.moon.filter(e => e.type === 'new')]
+    const last = news.filter(e => e.at <= noon).pop()
+    const age = (noon - last.at) / DAY
+    return { waxing: age < SYNODIC / 2, lit: Math.round((1 - Math.cos(2 * Math.PI * age / SYNODIC)) / 2 * 100) }
+}
+
+function moonIcon(t) {
+    const phase = state.moon.find(e => e.t === t)
+    const { waxing, lit } = moonAge(t)
+    const f = phase ? (phase.type === 'full' ? 1 : 0) : lit / 100
+    const rx = (9 * Math.abs(1 - 2 * f)).toFixed(2)
+    const litPath = f <= 0.01 ? '' : f >= 0.99
+        ? '<circle r="9" style="fill: var(--moon-full)"/>'
+        : `<path transform="scale(${waxing ? 1 : -1} 1)" style="fill: var(--moon-full)" d="M0 -9A9 9 0 0 1 0 9A${rx} 9 0 0 ${f < 0.5 ? 0 : 1} 0 -9Z"/>`
+    return `<svg class="moon-icon" viewBox="-10.5 -10.5 21 21" aria-hidden="true"><circle r="9" style="fill: var(--moon-new)"/>${litPath}<circle r="9" fill="none" style="stroke: var(--moon)" stroke-width="1.4"/></svg>`
+}
+function moonText(t) {
+    const phase = state.moon.find(e => e.t === t)
+    if (phase) return `${MOON_NAME[phase.type]} · ${mskTime(phase.at)} мск`
+    const { waxing, lit } = moonAge(t)
+    return `${waxing ? 'растущая' : 'убывающая'} луна · ${lit}%`
+}
+
 function mskTime(at) {
     const d = new Date(at + MSK)
     return `${d.getUTCHours()}:${String(d.getUTCMinutes()).padStart(2, '0')}`
@@ -939,11 +1068,14 @@ function draw() {
         arcLabel(defs, `season-${s.cls}`, (G.seasonIn + G.seasonOut) / 2, a0, a1, s.name, 'ring-label season-label')
     }
 
+    // С луной кольцо месяцев уже: снаружи от него — лунная дорожка.
+    const moon = on('moon')
+    const monthOut = moon ? G.moonTrack[0] - 2 : G.monthOut
     for (let m = 0; m < 12; m++) {
         const d0 = doy(y, utc(y, m, 1)), d1 = doy(y, utc(y, m + 1, 1))
         const a0 = ang(d0, n), a1 = ang(d1, n)
-        node('path', { class: `month ${m % 2 ? 'b' : 'a'}`, d: sector(G.monthIn, G.monthOut, a0, a1) }, svg)
-        arcLabel(defs, `month-${m}`, (G.monthIn + G.monthOut) / 2, a0, a1, G.months[m], 'ring-label')
+        node('path', { class: `month ${m % 2 ? 'b' : 'a'}`, d: sector(G.monthIn, monthOut, a0, a1) }, svg)
+        arcLabel(defs, `month-${m}`, (G.monthIn + monthOut) / 2, a0, a1, G.months[m], 'ring-label')
     }
     svg.appendChild(defs)
 
@@ -988,9 +1120,32 @@ function draw() {
 
     const hits = node('g', {}, svg)
     for (let i = 0; i < n; i++) {
-        const p = node('path', { class: 'hit', d: sector(G.dayIn, G.dayOut + 6, ang(i, n), ang(i + 1, n)) }, hits)
+        const p = node('path', { class: 'hit', d: sector(moon ? G.moonTrack[0] : G.dayIn, G.dayOut + 6, ang(i, n), ang(i + 1, n)) }, hits)
         p.dataset.day = i
         p.dataset.month = new Date(utc(y, 0, 1 + i)).getUTCMonth()
+    }
+
+    // Курсор выбранного дня (ключ day:<метка>) — ставит placeCursor().
+    const cursor = node('g', { class: 'day-cursor', visibility: 'hidden' }, svg)
+    node('line', {}, cursor)
+    node('circle', { r: G.todayDot }, cursor)
+
+    if (moon) {
+        // Кружок стоит в момент фазы (по Москве), а не в середине дня; клик выбирает этот день.
+        const r = (G.moonTrack[0] + G.moonTrack[1]) / 2
+        const moons = node('g', {}, svg)
+        for (const e of state.moon) {
+            const [cx, cy] = pt(r, ang((e.at + MSK - utc(y, 0, 1)) / DAY, n))
+            const g = node('g', {
+                class: 'moon-mark', tabindex: '0', role: 'button',
+                'aria-label': `${MOON_NAME[e.type]}, ${fmt(e.t)}, ${mskTime(e.at)} мск`
+            }, moons)
+            g.dataset.t = e.t
+            g.dataset.month = new Date(e.t).getUTCMonth()
+            node('circle', { class: 'halo', cx, cy, r: G.moonR + 4 }, g)
+            node('circle', { class: `moon ${e.type}`, cx, cy, r: G.moonR }, g)
+            node('circle', { class: 'tap', cx, cy, r: G.moonR + G.tap }, g)
+        }
     }
 
     // Близкие даты (например, Вход в Иерусалим, Благовещение и Пасха) разводим по двум орбитам:
@@ -1092,8 +1247,19 @@ function mobility(f) { return f.fixed ? 'непереходящий' : 'пере
 function renderCenterCompact(t) {
     if (G !== GEOMETRY.compact) return false
     const d = new Date(t)
-    centerEl.innerHTML = `<div class="date">${d.getUTCDate()} ${G.months[d.getUTCMonth()]}</div>`
+    const dots = dayEvents(t).map(c => `<i class="mark ${c}"></i>`).join('')
+    centerEl.innerHTML = `<div class="date">${d.getUTCDate()} ${G.months[d.getUTCMonth()]}</div>${dots ? `<div class="dots">${dots}</div>` : ''}`
     return true
+}
+// Классы-цвета событий дня t по видимым слоям: праздники, пост, солнцестояние, фаза луны.
+function dayEvents(t) {
+    const out = []
+    if (on('feasts')) for (const f of state.feasts) if (f.t === t) out.push(f.kind)
+    if (on('fasts') && fastAt(t)) out.push('fast')
+    if (on('sun') && state.sun.some(s => s.t === t)) out.push('sun')
+    const phase = on('moon') && state.moon.find(e => e.t === t)
+    if (phase) out.push(`moon-${phase.type}`)
+    return out
 }
 
 function renderCenterFeast(f) {
@@ -1119,6 +1285,7 @@ function renderCenterDay(i) {
     } else note = 'двунадесятых праздников до конца года нет'
     const sun = on('sun') && state.sun.find(s => s.t === t)
     if (sun) note += `${note ? '<br>' : ''}<span style="color: var(--sun)">${sun.name}</span>`
+    if (on('moon')) note += `${note ? '<br>' : ''}<span style="color: var(--moon)">${moonIcon(t)}${moonText(t)}</span>`
     const fast = on('fasts') && fastAt(t)
     if (fast) {
         const k = Math.round((t - fast.t0) / DAY) + 1
@@ -1212,13 +1379,89 @@ function previewSun(id) {
     markActive(`sun:${id}`)
 }
 
+function showDay(t) {
+    unlitFasts()
+    renderCenterDay(doy(state.year, t))
+    const phase = on('moon') && state.moon.find(e => e.t === t)
+    const feasts = on('feasts') ? state.feasts.filter(f => f.t === t) : []
+    const fast = on('fasts') && fastAt(t)
+    const sun = on('sun') && state.sun.find(s => s.t === t)
+    const rows = [
+        ['Старый стиль', oldStyle(t)],
+        ...(on('moon') ? [['Луна', moonIcon(t) + moonText(t)]] : []),
+        ...feasts.map(f => ['Праздник', f.short]),
+        ...(fast ? [['Пост', fast.oneDay ? fast.name : `${fast.name}, день ${Math.round((t - fast.t0) / DAY) + 1} из ${fast.len}`]] : []),
+        ...(sun ? [['Солнце', `${sun.name}, ${mskTime(sun.at)} мск`]] : []),
+        ['Когда', relative(t)]
+    ]
+    detailEl.innerHTML = `
+        <div class="kind"><span class="chip">День</span>${phase ? `<span class="chip moon">${MOON_NAME[phase.type]}</span>` : ''}</div>
+        <h2>${fmt(t)}</h2>
+        <p class="aka">${weekday(t)}</p>
+        <dl>${rows.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join('')}</dl>
+        ${phase ? `<p class="desc">${MOON_DESC[phase.type]}</p>` : ''}`
+    detailEl.scrollTop = 0
+    markActive(`day:${t}`)
+}
+// Курсор стоит на дне выбранной отметки и продолжает её спицу внутрь, до шарика — как линия «сегодня».
+// Цвет — по событию: праздник, пост, солнцестояние, луна; у простого дня — цвет фокуса.
+function cursorTarget(key) {
+    if (!key) return null
+    if (key.startsWith('day:')) {
+        const t = +key.slice(4)
+        return { t, cls: on('moon') && state.moon.some(e => e.t === t) ? 'moon' : '' }
+    }
+    if (key.startsWith('fast:')) {
+        const f = state.fasts.find(x => x.id === key.slice(5) && x.own)
+        return f && { t: f.t0, cls: 'fast' }
+    }
+    if (key.startsWith('sun:')) {
+        const s = state.sun.find(x => x.id === key.slice(4))
+        return s && { t: s.t, cls: 'sun' }
+    }
+    const f = feastById(key)
+    return f && { t: f.t, cls: f.kind }
+}
+function placeCursor() {
+    const cursor = svg.querySelector('.day-cursor')
+    if (!cursor) return
+    const target = cursorTarget(state.selected)
+    const visible = target && new Date(target.t).getUTCFullYear() === state.year
+    cursor.setAttribute('visibility', visible ? 'visible' : 'hidden')
+    if (!visible) return
+    cursor.setAttribute('class', `day-cursor ${target.cls}`)
+    const a = ang(doy(state.year, target.t) + 0.5, daysInYear(state.year))
+    const [x1, y1] = pt(G.todayFrom - 6, a), [x2, y2] = pt(G.dayOut + 4, a)
+    const line = cursor.querySelector('line'), dot = cursor.querySelector('circle')
+    Object.entries({ x1, y1, x2, y2 }).forEach(([k, v]) => line.setAttribute(k, v))
+    dot.setAttribute('cx', x1)
+    dot.setAttribute('cy', y1)
+}
+// Клик по дню: если в нём есть видимое событие — выбрать его, иначе сам день.
+function keyForDay(t) {
+    if (on('feasts')) {
+        const fs = state.feasts.filter(f => f.t === t)
+        const f = fs.find(f => f.kind === 'pascha') || fs[0]
+        if (f) return f.id
+    }
+    if (on('fasts')) {
+        const f = state.fasts.find(f => f.own && f.t0 === t)
+        if (f) return `fast:${f.id}`
+    }
+    if (on('sun')) {
+        const s = state.sun.find(s => s.t === t)
+        if (s) return `sun:${s.id}`
+    }
+    return `day:${t}`
+}
+
 function unlitFasts() {
     svg.querySelectorAll('.fast-band').forEach(e => e.classList.remove('lit'))
 }
 
 function markActive(key) {
-    document.querySelectorAll('[data-id], .pin, #fast-list button, g.sun').forEach(e => {
-        const k = e.dataset.id ?? (e.dataset.sun ? `sun:${e.dataset.sun}` : `fast:${e.dataset.fast}`)
+    document.querySelectorAll('[data-id], .pin, #fast-list button, g.sun, g.moon-mark').forEach(e => {
+        const k = e.dataset.id ?? (e.dataset.t ? `day:${e.dataset.t}` : e.dataset.sun ? `sun:${e.dataset.sun}` : `fast:${e.dataset.fast}`)
         e.classList.toggle('is-active', k === key)
         e.classList.toggle('is-selected', k === state.selected)
     })
@@ -1232,8 +1475,10 @@ function preview(id) {
     markActive(id)
 }
 function show(key) {
+    placeCursor()
     if (!key) return showEmpty()
-    if (key.startsWith('fast:')) previewFast(key.slice(5))
+    if (key.startsWith('day:')) showDay(+key.slice(4))
+    else if (key.startsWith('fast:')) previewFast(key.slice(5))
     else if (key.startsWith('sun:')) previewSun(key.slice(4))
     else preview(key)
 }
@@ -1246,6 +1491,7 @@ function showEmpty() {
 // Выбор по умолчанию — ближайший предстоящий праздник, а если праздники скрыты — ближайшая видимая отметка.
 function isVisible(key) {
     if (!key) return false
+    if (key.startsWith('day:')) return new Date(+key.slice(4)).getUTCFullYear() === state.year
     if (key.startsWith('fast:')) return on('fasts')
     if (key.startsWith('sun:')) return on('sun')
     return on('feasts')
@@ -1273,6 +1519,8 @@ svg.addEventListener('pointerover', e => {
     if (pin) { previewFast(pin.dataset.fast); litMonth(-1); return }
     const sun = e.target.closest('g.sun')
     if (sun) { previewSun(sun.dataset.sun); litMonth(-1); return }
+    const moonMark = e.target.closest('.moon-mark')
+    if (moonMark) { unlitFasts(); renderCenterDay(doy(state.year, +moonMark.dataset.t)); litMonth(+moonMark.dataset.month); markActive(`day:${moonMark.dataset.t}`); return }
     const hit = e.target.closest('.hit')
     if (hit) { unlitFasts(); renderCenterDay(+hit.dataset.day); litMonth(+hit.dataset.month); markActive(null) }
 })
@@ -1284,6 +1532,10 @@ svg.addEventListener('click', e => {
     if (pin) select(`fast:${pin.dataset.fast}`)
     const sun = e.target.closest('g.sun')
     if (sun) select(`sun:${sun.dataset.sun}`)
+    const moonMark = e.target.closest('.moon-mark')
+    if (moonMark) select(`day:${moonMark.dataset.t}`)
+    const hit = e.target.closest('.hit')
+    if (hit) select(keyForDay(utc(state.year, 0, 1 + +hit.dataset.day)))
 })
 svg.addEventListener('focusin', e => {
     const f = e.target.closest('.feast')
@@ -1292,6 +1544,8 @@ svg.addEventListener('focusin', e => {
     if (pin) previewFast(pin.dataset.fast)
     const sun = e.target.closest('g.sun')
     if (sun) previewSun(sun.dataset.sun)
+    const moonMark = e.target.closest('.moon-mark')
+    if (moonMark) showDay(+moonMark.dataset.t)
 })
 svg.addEventListener('focusout', restore)
 svg.addEventListener('keydown', e => {
@@ -1302,6 +1556,8 @@ svg.addEventListener('keydown', e => {
     if (pin) { e.preventDefault(); select(`fast:${pin.dataset.fast}`) }
     const sun = e.target.closest('g.sun')
     if (sun) { e.preventDefault(); select(`sun:${sun.dataset.sun}`) }
+    const moonMark = e.target.closest('.moon-mark')
+    if (moonMark) { e.preventDefault(); select(`day:${moonMark.dataset.t}`) }
 })
 
 listEl.addEventListener('pointerover', e => { const b = e.target.closest('button'); if (b) preview(b.dataset.id) })
@@ -1322,6 +1578,7 @@ function setYear(y) {
     state.feasts = computeFeasts(state.year)
     state.fasts = computeFasts(state.year)
     state.sun = solarEvents(state.year)
+    state.moon = moonPhases(state.year)
     if (!isVisible(state.selected)) state.selected = defaultSelection()
     draw()
     renderList()
