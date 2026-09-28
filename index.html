@@ -506,7 +506,6 @@ svg.compact .day-cursor line { stroke-width: 5; }
     transform: translate(0, -1px) rotate(-45deg);
 }
 .layers .sw { display: inline-block; width: 10px; height: 10px; border-radius: 50%; }
-.layers .sw.feasts { background: conic-gradient(var(--gold) 0 50%, var(--lapis) 0 80%, var(--cinnabar) 0); }
 .detail .empty { margin: auto 0; color: var(--muted); text-align: center; }
 
 @container col (min-width: 560px) {
@@ -626,9 +625,9 @@ svg.compact .feast .halo, svg.compact .pin .halo { stroke-width: 3; }
             </div>
             <div class="legends">
             <div class="legend legend-feasts">
-                <span data-layer="feasts"><i class="sw lord"></i>Господский</span>
-                <span data-layer="feasts"><i class="sw theotokos"></i>Богородичный</span>
-                <span data-layer="feasts"><i class="sw pascha"></i>Пасха</span>
+                <span data-layer="lord"><i class="sw lord"></i>Господский</span>
+                <span data-layer="theotokos"><i class="sw theotokos"></i>Богородичный</span>
+                <span data-layer="lord"><i class="sw pascha"></i>Пасха</span>
                 <span><i class="line"></i>Сегодня</span>
             </div>
             <div class="legend legend-fasts">
@@ -783,7 +782,8 @@ const SOLAR = [
 
 // Слои круга, которые можно скрыть. Новый индикатор — новая строка здесь и ветка в draw().
 const LAYERS = [
-    { id: 'feasts', label: 'Праздники', hint: 'Двунадесятые праздники и Пасха: маркеры на круге и список справа', icon: '<i class="sw feasts"></i>' },
+    { id: 'lord', label: 'Господские', hint: 'Господские двунадесятые праздники и Пасха: маркеры на круге и строки списка', icon: '<i class="sw lord"></i>' },
+    { id: 'theotokos', label: 'Богородичные', hint: 'Богородичные двунадесятые праздники: маркеры на круге и строки списка', icon: '<i class="sw theotokos"></i>' },
     { id: 'fasts', label: 'Посты', hint: 'Посты: закрашенные дни, пины в начале многодневных постов и список', icon: '<i class="sw fast"></i>' },
     { id: 'moon', label: 'Луна', hint: 'Новолуния и полнолуния на дорожке между месяцами и днями, фаза луны в центре', icon: '<svg class="sun-icon" viewBox="-12 -12 24 24" aria-hidden="true"><path style="fill: var(--moon)" d="M-1.42 -8.89A9 9 0 1 0 8.14 3.85A8 8 0 0 1 -1.42 -8.89Z"></path></svg>' },
     { id: 'sun', label: 'Солнцестояния и равноденствия', hint: 'Солнцестояния и равноденствия: момент по Москве и связь с церковным календарём', icon:'<svg class="sun-icon" viewBox="-12 -12 24 24" aria-hidden="true"><path style="stroke: var(--sun)" stroke-width="2" stroke-linecap="round" d="M0 -10.5V-8M0 10.5V8M-10.5 0H-8M10.5 0H8M-7.4 -7.4L-5.7 -5.7M7.4 7.4L5.7 5.7M-7.4 7.4L-5.7 5.7M7.4 -7.4L5.7 -5.7"></path><circle style="fill: var(--sun)" r="5"></circle></svg>' }
@@ -827,8 +827,16 @@ const TODAY = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate())
 
 const state = { year: now.getFullYear(), selected: null, feasts: [], fasts: [], sun: [], moon: [], layers: {} }
 for (const l of LAYERS) state.layers[l.id] = true
-try { Object.assign(state.layers, JSON.parse(localStorage.getItem('layers')) || {}) } catch (e) {}
+try {
+    const saved = JSON.parse(localStorage.getItem('layers')) || {}
+    // Раньше был один слой «Праздники» — переносим его выбор на оба новых.
+    if ('feasts' in saved) { saved.lord ??= saved.feasts; saved.theotokos ??= saved.feasts; delete saved.feasts }
+    Object.assign(state.layers, saved)
+} catch (e) {}
 function on(layer) { return state.layers[layer] !== false }
+// Праздники — два слоя: Господские (вместе с Пасхой) и Богородичные.
+function feastOn(f) { return on(f.kind === 'theotokos' ? 'theotokos' : 'lord') }
+function visibleFeasts() { return state.feasts.filter(feastOn) }
 
 const svg = document.getElementById('wheel')
 const centerEl = document.getElementById('center')
@@ -1161,7 +1169,7 @@ function draw() {
     // Близкие даты (например, Вход в Иерусалим, Благовещение и Пасха) разводим по двум орбитам:
     // маркер встаёт на первую орбиту, где от предыдущего маркера больше gapDays дней.
     const items = [
-        ...(on('feasts') ? state.feasts : []).map(f => ({ type: 'feast', f, day: f.day })),
+        ...visibleFeasts().map(f => ({ type: 'feast', f, day: f.day })),
         ...(on('fasts') ? state.fasts : []).filter(f => f.own && !f.oneDay).map(f => ({ type: 'pin', f, day: doy(y, f.t0) })),
         ...(on('sun') ? state.sun : []).map(f => ({ type: 'sun', f, day: f.day }))
     ].sort((a, b) => a.day - b.day)
@@ -1233,7 +1241,7 @@ function draw() {
 
 function renderList() {
     const newYear = doy(state.year, utc(state.year, 8, 14))
-    const ordered = [...state.feasts].sort((a, b) => {
+    const ordered = visibleFeasts().sort((a, b) => {
         const ka = (a.day - newYear + 400) % 400, kb = (b.day - newYear + 400) % 400
         return ka - kb
     })
@@ -1264,7 +1272,7 @@ function renderCenterCompact(t) {
 // Классы-цвета событий дня t по видимым слоям: праздники, пост, солнцестояние, фаза луны.
 function dayEvents(t) {
     const out = []
-    if (on('feasts')) for (const f of state.feasts) if (f.t === t) out.push(f.kind)
+    for (const f of visibleFeasts()) if (f.t === t) out.push(f.kind)
     if (on('fasts') && fastAt(t)) out.push('fast')
     if (on('sun') && state.sun.some(s => s.t === t)) out.push('sun')
     const phase = on('moon') && state.moon.find(e => e.t === t)
@@ -1275,7 +1283,7 @@ function dayEvents(t) {
 // Остальные видимые события дня t, кроме выбранного (key): другие праздники, пост, солнцестояние, фаза луны.
 function otherEvents(t, key) {
     const out = []
-    if (on('feasts')) for (const f of state.feasts) if (f.t === t && f.id !== key) out.push({ cls: f.kind, text: f.short })
+    for (const f of visibleFeasts()) if (f.t === t && f.id !== key) out.push({ cls: f.kind, text: f.short })
     const fast = on('fasts') && fastAt(t)
     if (fast && key !== `fast:${fast.id}`) out.push({ cls: 'fast', text: fast.oneDay ? 'однодневный пост' : `${fast.name} · день ${Math.round((t - fast.t0) / DAY) + 1} из ${fast.len}` })
     const sun = on('sun') && state.sun.find(s => s.t === t)
@@ -1302,10 +1310,11 @@ function alsoRow(t, key) { const h = alsoHtml(t, key); return h ? `<dt>Такж�
 function renderCenterDay(i) {
     const t = utc(state.year, 0, 1 + i)
     if (renderCenterCompact(t)) return
-    const next = state.feasts.filter(f => f.t >= t).sort((a, b) => a.t - b.t)[0]
+    const feasts = visibleFeasts()
+    const next = feasts.filter(f => f.t >= t).sort((a, b) => a.t - b.t)[0]
     let note = ''
     if (i === doy(state.year, utc(state.year, 8, 14))) note = 'Церковное новолетие'
-    else if (!on('feasts')) note = ''
+    else if (!feasts.length) note = ''
     else if (next) {
         const k = Math.round((next.t - t) / DAY)
         note = k === 0 ? next.short : `до праздника «${next.short}» — ${k} ${plural(k, ['день', 'дня', 'дней'])}`
@@ -1413,7 +1422,7 @@ function showDay(t) {
     unlitFasts()
     renderCenterDay(doy(state.year, t))
     const phase = on('moon') && state.moon.find(e => e.t === t)
-    const feasts = on('feasts') ? state.feasts.filter(f => f.t === t) : []
+    const feasts = visibleFeasts().filter(f => f.t === t)
     const fast = on('fasts') && fastAt(t)
     const sun = on('sun') && state.sun.find(s => s.t === t)
     const rows = [
@@ -1469,8 +1478,8 @@ function placeCursor() {
 }
 // Клик по дню: если в нём есть видимое событие — выбрать его, иначе сам день.
 function keyForDay(t) {
-    if (on('feasts')) {
-        const fs = state.feasts.filter(f => f.t === t)
+    {
+        const fs = visibleFeasts().filter(f => f.t === t)
         const f = fs.find(f => f.kind === 'pascha') || fs[0]
         if (f) return f.id
     }
@@ -1524,15 +1533,16 @@ function isVisible(key) {
     if (key.startsWith('day:')) return new Date(+key.slice(4)).getUTCFullYear() === state.year
     if (key.startsWith('fast:')) return on('fasts')
     if (key.startsWith('sun:')) return on('sun')
-    return on('feasts')
+    const f = feastById(key)
+    return !!f && feastOn(f)
 }
 function defaultSelection() {
-    const feasts = state.feasts.map(f => ({ key: f.id, t: f.t }))
+    const feasts = visibleFeasts().map(f => ({ key: f.id, t: f.t }))
     const others = [
         ...state.fasts.filter(f => f.own).map(f => ({ key: `fast:${f.id}`, t: f.t0 })),
         ...state.sun.map(s => ({ key: `sun:${s.id}`, t: s.t }))
     ]
-    const marks = (on('feasts') ? feasts : others.filter(m => isVisible(m.key))).sort((a, b) => a.t - b.t)
+    const marks = (feasts.length ? feasts : others.filter(m => isVisible(m.key))).sort((a, b) => a.t - b.t)
     return (marks.find(m => m.t >= TODAY) || marks[marks.length - 1] || {}).key ?? null
 }
 function restore() { unlitFasts(); show(state.selected); markActive(null) }
@@ -1594,7 +1604,7 @@ for (const l of LAYERS) {
     layersEl.appendChild(label)
 }
 function applyLayers() {
-    document.getElementById('feast-section').hidden = !on('feasts')
+    document.getElementById('feast-section').hidden = !on('lord') && !on('theotokos')
     document.getElementById('fast-section').hidden = !on('fasts')
     document.querySelectorAll('.legend [data-layer]').forEach(e => e.classList.toggle('off', !on(e.dataset.layer)))
 }
@@ -1611,6 +1621,7 @@ layersEl.addEventListener('change', e => {
         state.selected = keyForDay(+state.selected.slice(4))
     }
     draw()
+    renderList()
     restore()
 })
 applyLayers()
