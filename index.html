@@ -1778,8 +1778,23 @@ window.addEventListener('resize', syncMode)
 
 setYear(state.year)
 
-// Офлайн и установка на телефон (PWA).
-if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {})
+// Офлайн и установка на телефон (PWA). Обновления приходят сами: новый sw.js берёт управление —
+// страница один раз перезагружается; при возврате в приложение из фона проверяем, нет ли нового sw.js.
+if ('serviceWorker' in navigator) {
+    const hadController = !!navigator.serviceWorker.controller
+    let reloading = false
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+        // Первый визит (воркера ещё не было) не перезагружаем — страница и так свежая.
+        if (!hadController || reloading) return
+        reloading = true
+        location.reload()
+    })
+    navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(reg => {
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') reg.update().catch(() => {})
+        })
+    }).catch(() => {})
+}
 </script>
 </body>
 </html>
