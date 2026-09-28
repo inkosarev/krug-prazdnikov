@@ -14,7 +14,7 @@ img { max-width: 100%; }
 [hidden] { display: none !important; }
 </style>
 <title>Круг двунадесятых праздников</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Ccircle cx=%2716%27 cy=%2716%27 r=%2712%27 fill=%27none%27 stroke=%27%23a4761b%27 stroke-width=%275%27/%3E%3Ccircle cx=%2716%27 cy=%274%27 r=%273.5%27 fill=%27%23b0392b%27/%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20viewBox=%2714%2014%2072%2072%27%3E%3Cstyle%3Epath%7Bstroke:%23a4761b%7D%40media%20%28prefers-color-scheme:dark%29%7Bpath%7Bstroke:%23d8ae57%7D%7D%3C/style%3E%3Cpath%20fill=%27none%27%20stroke-width=%276.2%27%20d=%27M50%2017V83M38%2026.5H62M22%2038.5H78M35%2062.5L65%2068.5%27/%3E%3C/svg%3E">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <meta name="theme-color" content="#edf0f4" media="(prefers-color-scheme: light)">
@@ -139,8 +139,8 @@ body {
     cursor: pointer;
 }
 .years button:hover { border-color: var(--muted); }
-.years .theme-toggle { display: inline-flex; align-items: center; justify-content: center; padding: 0; width: 36px; }
-.theme-toggle svg { width: 18px; height: 18px; }
+.years .theme-toggle, .years .icon-btn { display: inline-flex; align-items: center; justify-content: center; padding: 0; width: 36px; }
+.theme-toggle svg, .icon-btn svg { width: 18px; height: 18px; }
 .years { position: relative; }
 .years .year {
     font-family: var(--display);
@@ -164,8 +164,8 @@ body {
 }
 .years .year:hover, .years .year[aria-expanded="true"] { border-color: var(--line); }
 
-/* ---- Выбор года ---- */
-.year-picker {
+/* ---- Выбор года и подсказка установки ---- */
+.year-picker, .install-help {
     position: absolute;
     top: calc(100% + 6px);
     left: 50%;
@@ -178,6 +178,10 @@ body {
     border-radius: 6px;
     box-shadow: 0 8px 24px rgb(0 0 0 / .16);
 }
+.install-help { font-size: 14px; line-height: 1.45; padding: 14px 16px; }
+.install-help p { margin: 0 0 8px; }
+.install-help ol { margin: 0; padding-left: 20px; }
+.install-help b { font-weight: 700; }
 .year-picker .head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
 .year-picker .decade { font-family: var(--display); font-size: 18px; font-variant-numeric: tabular-nums; }
 .years .year-picker button { height: 34px; min-width: 34px; padding: 0; }
@@ -224,7 +228,6 @@ button:focus-visible, .feast:focus-visible, .pin:focus-visible, g.sun:focus-visi
 .month { stroke: var(--ground); stroke-width: 2; transition: fill .15s; }
 .month.a { fill: var(--month-a); }
 .month.b { fill: var(--month-b); }
-.month.lit { fill: var(--line); }
 .ring-label {
     fill: var(--ink);
     font-family: var(--body);
@@ -238,7 +241,7 @@ button:focus-visible, .feast:focus-visible, .pin:focus-visible, g.sun:focus-visi
 .tick.mid { stroke-width: 1.4; }
 .tick.major { stroke: var(--ink); stroke-width: 1.8; }
 .day-num { fill: var(--muted); font-size: 11px; font-family: var(--body); pointer-events: none; }
-.hit { fill: transparent; cursor: crosshair; }
+.hit { fill: transparent; cursor: pointer; }
 .hit:hover { fill: var(--line); fill-opacity: .55; }
 .newyear { stroke: var(--muted); stroke-width: 1.4; stroke-dasharray: 3 4; }
 .today-line { stroke: var(--ink); stroke-width: 2.4; }
@@ -444,6 +447,10 @@ svg.compact .day-cursor line { stroke-width: 5; }
 .center .dots { display: flex; justify-content: center; gap: 1.6cqw; margin-top: .6cqw; }
 .center .dots i { width: 3.4cqw; height: 3.4cqw; border-radius: 50%; }
 .center .dots i.fast { border-radius: .8cqw; }
+.also { white-space: nowrap; }
+.also .mark { display: inline-block; width: .8em; height: .8em; border-radius: 50%; vertical-align: -.05em; margin-right: .4em; }
+.also .mark.fast { border-radius: 2px; }
+.detail .also { white-space: normal; }
 .mark.moon-new { background: var(--moon-new); box-shadow: inset 0 0 0 1.5px var(--moon); }
 .mark.moon-full { background: var(--moon-full); box-shadow: inset 0 0 0 1.5px var(--moon); }
 .legend .moon-sw { display: inline-block; width: 10px; height: 10px; border-radius: 50%; border: 1.5px solid var(--moon); background: var(--moon-new); }
@@ -513,7 +520,7 @@ svg.compact .day-cursor line { stroke-width: 5; }
         justify-content: flex-start;
         z-index: 5;
     }
-    .year-picker { left: 0; transform: none; }
+    .year-picker, .install-help { left: 0; transform: none; }
     .legends .legend {
         display: flex;
         position: absolute;
@@ -597,20 +604,22 @@ svg.compact .feast .halo, svg.compact .pin .halo { stroke-width: 3; }
     <div class="layout">
         <div class="wheel-col">
             <div class="wheel">
-                <svg id="wheel" viewBox="0 0 900 900" role="img" aria-label="Годовой круг с отмеченными праздниками"></svg>
+                <svg id="wheel" viewBox="0 0 900 900" role="group" aria-label="Годовой круг: праздники, посты, луна и солнцестояния. Отметки — кнопки, клик по дню выбирает его"></svg>
                 <div class="center" id="center" aria-live="polite"></div>
             </div>
             <div class="years" role="group" aria-label="Год">
-                <button type="button" id="prev-year" aria-label="Предыдущий год">‹</button>
+                <button type="button" id="prev-year" aria-label="Предыдущий год" title="Предыдущий год">‹</button>
                 <button type="button" class="year" id="year-label" aria-haspopup="dialog" aria-expanded="false" aria-controls="year-picker"></button>
-                <button type="button" id="next-year" aria-label="Следующий год">›</button>
-                <button type="button" id="this-year">Сегодня</button>
+                <button type="button" id="next-year" aria-label="Следующий год" title="Следующий год">›</button>
+                <button type="button" id="this-year" title="Вернуться к текущему году и ближайшему празднику">Сегодня</button>
                 <button type="button" id="theme-toggle" class="theme-toggle"></button>
+                <button type="button" id="install" class="icon-btn" aria-label="Установить приложение" title="Установить на рабочий стол или экран «Домой»" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v11M7 9.5l5 5 5-5M5 20h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+                <div class="popover install-help" id="install-help" role="dialog" aria-label="Как установить приложение" hidden></div>
                 <div class="year-picker" id="year-picker" role="dialog" aria-label="Выбор года" hidden>
                     <div class="head">
-                        <button type="button" data-step="-1" aria-label="Предыдущее десятилетие">‹</button>
+                        <button type="button" data-step="-1" aria-label="Предыдущее десятилетие" title="Предыдущее десятилетие">‹</button>
                         <span class="decade" aria-live="polite"></span>
-                        <button type="button" data-step="1" aria-label="Следующее десятилетие">›</button>
+                        <button type="button" data-step="1" aria-label="Следующее десятилетие" title="Следующее десятилетие">›</button>
                     </div>
                     <div class="grid"></div>
                 </div>
@@ -774,10 +783,10 @@ const SOLAR = [
 
 // Слои круга, которые можно скрыть. Новый индикатор — новая строка здесь и ветка в draw().
 const LAYERS = [
-    { id: 'feasts', label: 'Праздники', icon: '<i class="sw feasts"></i>' },
-    { id: 'fasts', label: 'Посты', icon: '<i class="sw fast"></i>' },
-    { id: 'moon', label: 'Луна', icon: '<svg class="sun-icon" viewBox="-12 -12 24 24" aria-hidden="true"><path style="fill: var(--moon)" d="M-1.42 -8.89A9 9 0 1 0 8.14 3.85A8 8 0 0 1 -1.42 -8.89Z"></path></svg>' },
-    { id: 'sun', label: 'Солнцестояния и равноденствия', icon:'<svg class="sun-icon" viewBox="-12 -12 24 24" aria-hidden="true"><path style="stroke: var(--sun)" stroke-width="2" stroke-linecap="round" d="M0 -10.5V-8M0 10.5V8M-10.5 0H-8M10.5 0H8M-7.4 -7.4L-5.7 -5.7M7.4 7.4L5.7 5.7M-7.4 7.4L-5.7 5.7M7.4 -7.4L5.7 -5.7"></path><circle style="fill: var(--sun)" r="5"></circle></svg>' }
+    { id: 'feasts', label: 'Праздники', hint: 'Двунадесятые праздники и Пасха: маркеры на круге и список справа', icon: '<i class="sw feasts"></i>' },
+    { id: 'fasts', label: 'Посты', hint: 'Посты: закрашенные дни, пины в начале многодневных постов и список', icon: '<i class="sw fast"></i>' },
+    { id: 'moon', label: 'Луна', hint: 'Новолуния и полнолуния на дорожке между месяцами и днями, фаза луны в центре', icon: '<svg class="sun-icon" viewBox="-12 -12 24 24" aria-hidden="true"><path style="fill: var(--moon)" d="M-1.42 -8.89A9 9 0 1 0 8.14 3.85A8 8 0 0 1 -1.42 -8.89Z"></path></svg>' },
+    { id: 'sun', label: 'Солнцестояния и равноденствия', hint: 'Солнцестояния и равноденствия: момент по Москве и связь с церковным календарём', icon:'<svg class="sun-icon" viewBox="-12 -12 24 24" aria-hidden="true"><path style="stroke: var(--sun)" stroke-width="2" stroke-linecap="round" d="M0 -10.5V-8M0 10.5V8M-10.5 0H-8M10.5 0H8M-7.4 -7.4L-5.7 -5.7M7.4 7.4L5.7 5.7M-7.4 7.4L-5.7 5.7M7.4 -7.4L5.7 -5.7"></path><circle style="fill: var(--sun)" r="5"></circle></svg>' }
 ]
 
 const MONTHS = ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь']
@@ -1142,6 +1151,7 @@ function draw() {
             }, moons)
             g.dataset.t = e.t
             g.dataset.month = new Date(e.t).getUTCMonth()
+            node('title', {}, g).textContent = g.getAttribute('aria-label')
             node('circle', { class: 'halo', cx, cy, r: G.moonR + 4 }, g)
             node('circle', { class: `moon ${e.type}`, cx, cy, r: G.moonR }, g)
             node('circle', { class: 'tap', cx, cy, r: G.moonR + G.tap }, g)
@@ -1262,6 +1272,21 @@ function dayEvents(t) {
     return out
 }
 
+// Остальные видимые события дня t, кроме выбранного (key): другие праздники, пост, солнцестояние, фаза луны.
+function otherEvents(t, key) {
+    const out = []
+    if (on('feasts')) for (const f of state.feasts) if (f.t === t && f.id !== key) out.push({ cls: f.kind, text: f.short })
+    const fast = on('fasts') && fastAt(t)
+    if (fast && key !== `fast:${fast.id}`) out.push({ cls: 'fast', text: fast.oneDay ? 'однодневный пост' : `${fast.name} · день ${Math.round((t - fast.t0) / DAY) + 1} из ${fast.len}` })
+    const sun = on('sun') && state.sun.find(s => s.t === t)
+    if (sun && key !== `sun:${sun.id}`) out.push({ cls: 'sun', text: `${sun.name} · ${mskTime(sun.at)} мск` })
+    if (on('moon') && state.moon.some(e => e.t === t)) out.push({ icon: moonIcon(t), text: moonText(t) })
+    return out
+}
+function alsoHtml(t, key) {
+    return otherEvents(t, key).map(e => `<span class="also">${e.icon || `<i class="mark ${e.cls}"></i>`}${e.text}</span>`).join('<br>')
+}
+
 function renderCenterFeast(f) {
     if (renderCenterCompact(f.t)) return
     const kind = f.kind === 'pascha' ? 'Пасха' : `${KIND_LABEL[f.kind]} · ${mobility(f)}`
@@ -1269,8 +1294,10 @@ function renderCenterFeast(f) {
         <div class="eyebrow"><i class="mark ${f.kind}"></i>${kind}</div>
         <div class="name">${f.short}</div>
         <div class="date">${fmt(f.t)}</div>
-        <div class="sub">${weekday(f.t)} · ${oldStyle(f.t)} ст. ст.<br>${relative(f.t)}</div>`
+        <div class="sub">${weekday(f.t)} · ${oldStyle(f.t)} ст. ст.<br>${relative(f.t)}${withBr(alsoHtml(f.t, f.id))}</div>`
 }
+function withBr(html) { return html ? `<br>${html}` : '' }
+function alsoRow(t, key) { const h = alsoHtml(t, key); return h ? `<dt>Также</dt><dd>${h}</dd>` : '' }
 
 function renderCenterDay(i) {
     const t = utc(state.year, 0, 1 + i)
@@ -1312,6 +1339,7 @@ function renderDetail(f) {
             <dt>Дата</dt><dd>${fmt(f.t)}, ${weekday(f.t)}</dd>
             <dt>Старый стиль</dt><dd>${oldStyle(f.t)}</dd>
             ${rule}
+            ${alsoRow(f.t, f.id)}
             <dt>Когда</dt><dd>${relative(f.t)}</dd>
         </dl>
         <p class="desc">${f.desc}</p>`
@@ -1340,7 +1368,7 @@ function previewFast(id) {
     if (!renderCenterCompact(f.t0)) centerEl.innerHTML = `
         <div class="eyebrow"><i class="mark fast"></i>${f.oneDay ? 'Однодневный пост' : 'Многодневный пост'}</div>
         <div class="name">${f.name}</div>
-        <div class="sub">${range}${f.oneDay ? '' : `<br>${length}`}</div>`
+        <div class="sub">${range}${f.oneDay ? '' : `<br>${length}`}${withBr(alsoHtml(f.t0, `fast:${f.id}`))}</div>`
     detailEl.innerHTML = `
         <div class="kind"><span class="chip fast">Пост</span><span class="chip">${f.oneDay ? 'однодневный' : 'многодневный'}</span></div>
         <h2>${f.name}</h2>
@@ -1350,6 +1378,7 @@ function previewFast(id) {
                 : `<dt>Начало</dt><dd>${fmt(f.t0)}, ${weekday(f.t0)}</dd>
                    <dt>Окончание</dt><dd>${fmt(f.t1)}, ${weekday(f.t1)}</dd>
                    <dt>Длится</dt><dd>${length}</dd>`}
+            ${alsoRow(f.t0, `fast:${f.id}`)}
             <dt>Когда</dt><dd>${TODAY >= f.t0 && TODAY <= f.t1 ? 'идёт сейчас' : relative(f.t0)}</dd>
         </dl>
         <p class="desc">${f.desc}</p>`
@@ -1364,7 +1393,7 @@ function previewSun(id) {
         <div class="eyebrow"><i class="mark sun"></i>${s.kind}</div>
         <div class="name">${s.name}</div>
         <div class="date">${fmt(s.t)}</div>
-        <div class="sub">${weekday(s.t)} · ${mskTime(s.at)} мск<br>${relative(s.t)}</div>`
+        <div class="sub">${weekday(s.t)} · ${mskTime(s.at)} мск<br>${relative(s.t)}${withBr(alsoHtml(s.t, `sun:${id}`))}</div>`
     detailEl.innerHTML = `
         <div class="kind"><span class="chip sun">Астрономия</span><span class="chip">${s.kind.toLowerCase()}</span></div>
         <h2>${s.name}</h2>
@@ -1372,6 +1401,7 @@ function previewSun(id) {
             <dt>Дата</dt><dd>${fmt(s.t)}, ${weekday(s.t)}</dd>
             <dt>Момент</dt><dd>${mskTime(s.at)} по Москве</dd>
             <dt>Старый стиль</dt><dd>${oldStyle(s.t)}</dd>
+            ${alsoRow(s.t, `sun:${id}`)}
             <dt>Когда</dt><dd>${relative(s.t)}</dd>
         </dl>
         <p class="desc">${s.desc}</p>`
@@ -1508,23 +1538,7 @@ function defaultSelection() {
 function restore() { unlitFasts(); show(state.selected); markActive(null) }
 function select(id) { state.selected = id; restore() }
 
-function litMonth(m) {
-    svg.querySelectorAll('.month').forEach((e, i) => e.classList.toggle('lit', i === m))
-}
-
-svg.addEventListener('pointerover', e => {
-    const feast = e.target.closest('.feast')
-    if (feast) { preview(feast.dataset.id); litMonth(-1); return }
-    const pin = e.target.closest('.pin')
-    if (pin) { previewFast(pin.dataset.fast); litMonth(-1); return }
-    const sun = e.target.closest('g.sun')
-    if (sun) { previewSun(sun.dataset.sun); litMonth(-1); return }
-    const moonMark = e.target.closest('.moon-mark')
-    if (moonMark) { unlitFasts(); renderCenterDay(doy(state.year, +moonMark.dataset.t)); litMonth(+moonMark.dataset.month); markActive(`day:${moonMark.dataset.t}`); return }
-    const hit = e.target.closest('.hit')
-    if (hit) { unlitFasts(); renderCenterDay(+hit.dataset.day); litMonth(+hit.dataset.month); markActive(null) }
-})
-svg.addEventListener('pointerleave', e => { if (e.pointerType !== 'mouse') return; litMonth(-1); restore() })
+// Показ отметки — только по клику (и Enter/Space с клавиатуры), наведение ничего не меняет — как на телефоне.
 svg.addEventListener('click', e => {
     const feast = e.target.closest('.feast')
     if (feast) select(feast.dataset.id)
@@ -1537,17 +1551,6 @@ svg.addEventListener('click', e => {
     const hit = e.target.closest('.hit')
     if (hit) select(keyForDay(utc(state.year, 0, 1 + +hit.dataset.day)))
 })
-svg.addEventListener('focusin', e => {
-    const f = e.target.closest('.feast')
-    if (f) preview(f.dataset.id)
-    const pin = e.target.closest('.pin')
-    if (pin) previewFast(pin.dataset.fast)
-    const sun = e.target.closest('g.sun')
-    if (sun) previewSun(sun.dataset.sun)
-    const moonMark = e.target.closest('.moon-mark')
-    if (moonMark) showDay(+moonMark.dataset.t)
-})
-svg.addEventListener('focusout', restore)
 svg.addEventListener('keydown', e => {
     if (e.key !== 'Enter' && e.key !== ' ') return
     const f = e.target.closest('.feast')
@@ -1560,21 +1563,16 @@ svg.addEventListener('keydown', e => {
     if (moonMark) { e.preventDefault(); select(`day:${moonMark.dataset.t}`) }
 })
 
-listEl.addEventListener('pointerover', e => { const b = e.target.closest('button'); if (b) preview(b.dataset.id) })
-listEl.addEventListener('pointerleave', restore)
 listEl.addEventListener('click', e => { const b = e.target.closest('button'); if (b) select(b.dataset.id) })
 
-fastListEl.addEventListener('pointerover', e => { const b = e.target.closest('button'); if (b) previewFast(b.dataset.fast) })
-fastListEl.addEventListener('pointerleave', restore)
 fastListEl.addEventListener('click', e => { const b = e.target.closest('button'); if (b) select(`fast:${b.dataset.fast}`) })
-fastListEl.addEventListener('focusin', e => { const b = e.target.closest('button'); if (b) previewFast(b.dataset.fast) })
-fastListEl.addEventListener('focusout', restore)
 
 const yearLabel = document.getElementById('year-label')
 function setYear(y) {
     state.year = Math.min(2099, Math.max(1901, y))
     yearLabel.textContent = state.year
     yearLabel.setAttribute('aria-label', `Год ${state.year}, выбрать другой`)
+    yearLabel.title = 'Выбрать год'
     state.feasts = computeFeasts(state.year)
     state.fasts = computeFasts(state.year)
     state.sun = solarEvents(state.year)
@@ -1590,6 +1588,7 @@ function setYear(y) {
 const layersEl = document.getElementById('layers')
 for (const l of LAYERS) {
     const label = document.createElement('label')
+    label.title = `Показывать: ${l.hint}`
     label.innerHTML = `<input type="checkbox" value="${l.id}"><span class="box"></span>${l.icon}${l.label}`
     label.querySelector('input').checked = on(l.id)
     layersEl.appendChild(label)
@@ -1603,7 +1602,14 @@ layersEl.addEventListener('change', e => {
     state.layers[e.target.value] = e.target.checked
     try { localStorage.setItem('layers', JSON.stringify(state.layers)) } catch (err) {}
     applyLayers()
-    if (!isVisible(state.selected)) state.selected = defaultSelection()
+    if (!isVisible(state.selected)) {
+        // Слой выбранного события выключили — остаёмся на его дне: другое видимое событие дня или сам день.
+        const target = cursorTarget(state.selected)
+        state.selected = target && new Date(target.t).getUTCFullYear() === state.year ? keyForDay(target.t) : defaultSelection()
+    } else if (e.target.checked && state.selected?.startsWith('day:')) {
+        // Слой включили обратно — если на выбранном дне есть его событие, выбрать событие.
+        state.selected = keyForDay(+state.selected.slice(4))
+    }
     draw()
     restore()
 })
@@ -1711,6 +1717,51 @@ themeBtn.addEventListener('click', () => {
     try { next === 'auto' ? localStorage.removeItem('theme') : localStorage.setItem('theme', next) } catch (e) {}
 })
 applyTheme(document.documentElement.dataset.theme || 'auto')
+
+// Установка приложения (PWA). Chrome, Edge, Android присылают beforeinstallprompt — тогда кнопка вызывает
+// системный диалог. В Safari на iPhone/iPad такого события нет — кнопка показывает, как добавить на экран «Домой».
+// В уже установленном приложении кнопки нет.
+const installBtn = document.getElementById('install')
+const installHelp = document.getElementById('install-help')
+const isStandalone = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true
+const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
+let installPrompt = null
+if (!isStandalone && isIOS) installBtn.hidden = false
+window.addEventListener('beforeinstallprompt', e => {
+    e.preventDefault()
+    installPrompt = e
+    if (!isStandalone) installBtn.hidden = false
+})
+window.addEventListener('appinstalled', () => { installPrompt = null; installBtn.hidden = true; closeInstallHelp() })
+function openInstallHelp() {
+    closePicker()
+    installHelp.innerHTML = isIOS
+        ? `<p>Чтобы круг открывался как приложение:</p>
+           <ol><li>Нажмите <b>«Поделиться»</b> — квадрат со стрелкой вверх.</li>
+           <li>Выберите <b>«На экран „Домой“»</b>.</li><li>Нажмите <b>«Добавить»</b>.</li></ol>`
+        : `<p>Откройте меню браузера (⋮ или ⋯) и выберите <b>«Установить приложение»</b>
+           или <b>«Добавить на главный экран»</b>.</p>`
+    installHelp.hidden = false
+    installBtn.setAttribute('aria-expanded', 'true')
+}
+function closeInstallHelp() {
+    if (installHelp.hidden) return
+    installHelp.hidden = true
+    installBtn.setAttribute('aria-expanded', 'false')
+}
+installBtn.addEventListener('click', async () => {
+    if (!installPrompt) return installHelp.hidden ? openInstallHelp() : closeInstallHelp()
+    const prompt = installPrompt
+    installPrompt = null
+    prompt.prompt()
+    const { outcome } = await prompt.userChoice
+    if (outcome === 'accepted') installBtn.hidden = true
+})
+document.addEventListener('pointerdown', e => {
+    if (!installHelp.contains(e.target) && !installBtn.contains(e.target)) closeInstallHelp()
+})
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && !installHelp.hidden) { closeInstallHelp(); installBtn.focus() } })
+yearLabel.addEventListener('click', closeInstallHelp)
 
 const wheelEl = document.querySelector('.wheel')
 function applyMode(width) {

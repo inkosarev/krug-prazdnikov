@@ -1,6 +1,6 @@
 // Офлайн-кэш. Страница — сначала сеть (правки приходят сразу), без сети — из кэша.
 // Шрифты и иконки — сначала кэш. При изменении списка файлов поднять VERSION.
-const VERSION = 'v1'
+const VERSION = 'v3'
 const CACHE = `krug-${VERSION}`
 const PRECACHE = ['./', 'manifest.webmanifest', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png']
 
