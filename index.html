@@ -506,7 +506,6 @@ svg.compact .day-cursor line { stroke-width: 5; }
     transform: translate(0, -1px) rotate(-45deg);
 }
 .layers .sw { display: inline-block; width: 10px; height: 10px; border-radius: 50%; }
-.detail .empty { margin: auto 0; color: var(--muted); text-align: center; }
 
 @container col (min-width: 560px) {
     .wheel { max-width: min(100%, calc(100vh - 32px)); }
@@ -610,7 +609,6 @@ svg.compact .feast .halo, svg.compact .pin .halo { stroke-width: 3; }
                 <button type="button" id="prev-year" aria-label="Предыдущий год" title="Предыдущий год">‹</button>
                 <button type="button" class="year" id="year-label" aria-haspopup="dialog" aria-expanded="false" aria-controls="year-picker"></button>
                 <button type="button" id="next-year" aria-label="Следующий год" title="Следующий год">›</button>
-                <button type="button" id="this-year" title="Вернуться к текущему году и ближайшему празднику">Сегодня</button>
                 <button type="button" id="theme-toggle" class="theme-toggle"></button>
                 <button type="button" id="install" class="icon-btn" aria-label="Установить приложение" title="Установить на рабочий стол или экран «Домой»" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v11M7 9.5l5 5 5-5M5 20h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
                 <div class="popover install-help" id="install-help" role="dialog" aria-label="Как установить приложение" hidden></div>
@@ -1515,19 +1513,17 @@ function preview(id) {
 }
 function show(key) {
     placeCursor()
-    if (!key) return showEmpty()
+    if (!key) return showToday()
     if (key.startsWith('day:')) showDay(+key.slice(4))
     else if (key.startsWith('fast:')) previewFast(key.slice(5))
     else if (key.startsWith('sun:')) previewSun(key.slice(4))
     else preview(key)
 }
-// Все слои выключены: в центре сегодняшний день (или 1 января другого года), в описании — подсказка.
-function showEmpty() {
-    const t = new Date(TODAY).getUTCFullYear() === state.year ? TODAY : utc(state.year, 0, 1)
-    renderCenterDay(doy(state.year, t))
-    detailEl.innerHTML = `<p class="empty">Все отметки скрыты — включите их переключателями выше.</p>`
+// Ничего не выбрано (так открывается страница): сегодняшний день, для другого года — 1 января; курсора нет.
+function showToday() {
+    showDay(new Date(TODAY).getUTCFullYear() === state.year ? TODAY : utc(state.year, 0, 1))
+    markActive(null)
 }
-// Выбор по умолчанию — ближайший предстоящий праздник, а если праздники скрыты — ближайшая видимая отметка.
 function isVisible(key) {
     if (!key) return false
     if (key.startsWith('day:')) return new Date(+key.slice(4)).getUTCFullYear() === state.year
@@ -1535,15 +1531,6 @@ function isVisible(key) {
     if (key.startsWith('sun:')) return on('sun')
     const f = feastById(key)
     return !!f && feastOn(f)
-}
-function defaultSelection() {
-    const feasts = visibleFeasts().map(f => ({ key: f.id, t: f.t }))
-    const others = [
-        ...state.fasts.filter(f => f.own).map(f => ({ key: `fast:${f.id}`, t: f.t0 })),
-        ...state.sun.map(s => ({ key: `sun:${s.id}`, t: s.t }))
-    ]
-    const marks = (feasts.length ? feasts : others.filter(m => isVisible(m.key))).sort((a, b) => a.t - b.t)
-    return (marks.find(m => m.t >= TODAY) || marks[marks.length - 1] || {}).key ?? null
 }
 function restore() { unlitFasts(); show(state.selected); markActive(null) }
 function select(id) { state.selected = id; restore() }
@@ -1587,7 +1574,7 @@ function setYear(y) {
     state.fasts = computeFasts(state.year)
     state.sun = solarEvents(state.year)
     state.moon = moonPhases(state.year)
-    if (!isVisible(state.selected)) state.selected = defaultSelection()
+    if (!isVisible(state.selected)) state.selected = null
     draw()
     renderList()
     renderFastList()
@@ -1615,7 +1602,7 @@ layersEl.addEventListener('change', e => {
     if (!isVisible(state.selected)) {
         // Слой выбранного события выключили — остаёмся на его дне: другое видимое событие дня или сам день.
         const target = cursorTarget(state.selected)
-        state.selected = target && new Date(target.t).getUTCFullYear() === state.year ? keyForDay(target.t) : defaultSelection()
+        state.selected = target && new Date(target.t).getUTCFullYear() === state.year ? keyForDay(target.t) : null
     } else if (e.target.checked && state.selected?.startsWith('day:')) {
         // Слой включили обратно — если на выбранном дне есть его событие, выбрать событие.
         state.selected = keyForDay(+state.selected.slice(4))
@@ -1628,7 +1615,6 @@ applyLayers()
 
 document.getElementById('prev-year').addEventListener('click', () => { closePicker(); setYear(state.year - 1) })
 document.getElementById('next-year').addEventListener('click', () => { closePicker(); setYear(state.year + 1) })
-document.getElementById('this-year').addEventListener('click', () => { closePicker(); state.selected = null; setYear(now.getFullYear()) })
 
 // Выбор года: клик по числу открывает сетку десятилетия (плюс по году с краёв), листание по десятилетиям.
 const MIN_YEAR = 1901, MAX_YEAR = 2099
